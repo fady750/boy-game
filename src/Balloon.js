@@ -1,4 +1,109 @@
-import { Container, Graphics, Text, TextStyle } from 'pixi.js';
+import { Container, Sprite, Texture, Text, TextStyle } from 'pixi.js';
+
+let cachedBalloonTexture = null;
+
+/**
+ * Generates an ultra high-definition cached texture for the glassy balloon
+ * based directly on the exact Figma CSS properties:
+ * - Ellipse 251: Base #5439C6
+ * - Ellipse 247: rgba(217, 217, 217, 0.55) + 2 inset shadows rgba(6, 49, 46, ...)
+ * - Ellipse 249: rgba(0, 4, 4, 0.34)
+ * - Ellipse 250: rgba(229, 167, 255, 0.32)
+ * - Ellipse 248: rgba(255, 255, 255, 0.67) rotated -35.06deg
+ */
+function getBalloonTexture() {
+  if (cachedBalloonTexture) return cachedBalloonTexture;
+
+  const size = 312; // 3x of 104px for ultra crisp rendering
+  const s = size / 104; // scale factor = 3
+  const r = 52 * s; // 156px radius
+  const cx = r;
+  const cy = r;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+
+  // Clip everything to the circular balloon body
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.clip();
+
+  // 1. Ellipse 251: Base #5439C6
+  ctx.fillStyle = '#5439C6';
+  ctx.fillRect(0, 0, size, size);
+
+  // 2. Ellipse 247: rgba(217, 217, 217, 0.55)
+  ctx.fillStyle = 'rgba(217, 217, 217, 0.55)';
+  ctx.fillRect(0, 0, size, size);
+
+  // 3. Ellipse 247 Inset Shadows:
+  // box-shadow: inset 0px -5px 7.7px rgba(6, 49, 46, 0.77), inset 0px 4px 28.2px rgba(6, 49, 46, 0.81)
+  const drawInsetShadow = (offsetX, offsetY, blur, color) => {
+    ctx.save();
+    const margin = blur * 2 + Math.max(Math.abs(offsetX), Math.abs(offsetY)) + 40;
+    ctx.beginPath();
+    ctx.rect(cx - r - margin, cy - r - margin, (r + margin) * 2, (r + margin) * 2);
+    ctx.arc(cx, cy, r, 0, Math.PI * 2, true); // cutout circular hole
+    ctx.shadowColor = color;
+    ctx.shadowBlur = blur;
+    ctx.shadowOffsetX = offsetX;
+    ctx.shadowOffsetY = offsetY;
+    ctx.fillStyle = color;
+    ctx.fill('evenodd');
+    ctx.restore();
+  };
+
+  // Top inset shadow: 0px 4px 28.2px rgba(6, 49, 46, 0.81)
+  drawInsetShadow(0, 4 * s, 28.2 * s, 'rgba(6, 49, 46, 0.81)');
+
+  // Bottom inset shadow: 0px -5px 7.7px rgba(6, 49, 46, 0.77)
+  drawInsetShadow(0, -5 * s, 7.7 * s, 'rgba(6, 49, 46, 0.77)');
+
+  // 4. Ellipse 249: rgba(0, 4, 4, 0.34)
+  // width: 82px, height: 82px, left: 6131px, top: 797px (relative: left 3, top 20)
+  // center: (3 + 41, 20 + 41) = (44, 61), radius: 41
+  ctx.beginPath();
+  ctx.arc(44 * s, 61 * s, 41 * s, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(0, 4, 4, 0.34)';
+  ctx.fill();
+
+  // 5. Ellipse 250: rgba(229, 167, 255, 0.32)
+  // width: 52px, height: 52px, left: 6180px, top: 797px (relative: left 52, top 20)
+  // center: (52 + 26, 20 + 26) = (78, 46), radius: 26
+  ctx.beginPath();
+  ctx.arc(78 * s, 46 * s, 26 * s, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(229, 167, 255, 0.32)';
+  ctx.fill();
+
+  // 6. Ellipse 248: rgba(255, 255, 255, 0.67), rotate(-35.06deg)
+  // width: 10.31px, height: 11.45px, left: 6195px, top: 785px (relative: left 67, top 8)
+  // center: (67 + 5.155, 8 + 5.725) = (72.155, 13.725)
+  // radiusX: 5.155, radiusY: 5.725
+  ctx.save();
+  ctx.translate(72.155 * s, 13.725 * s);
+  ctx.rotate((-35.06 * Math.PI) / 180);
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 5.155 * s, 5.725 * s, 0, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.67)';
+  ctx.fill();
+  ctx.restore();
+
+  // Restore clip
+  ctx.restore();
+
+  // Edge antialiasing rim
+  ctx.beginPath();
+  ctx.arc(cx, cy, r - 0.5 * s, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(6, 49, 46, 0.5)';
+  ctx.lineWidth = 1 * s;
+  ctx.stroke();
+
+  cachedBalloonTexture = Texture.from(canvas);
+  return cachedBalloonTexture;
+}
 
 export class Balloon {
   constructor(x, y, type = 'normal', letter = 'A') {
@@ -8,19 +113,18 @@ export class Balloon {
     this.letter = letter;
     this.active = true;
 
-    // Different balloon types config (all using the glassy #5439C6 style)
+    // Balloon types configuration matching Figma proportions
     const types = {
-      small: { radius: 18, speed: 3.2, points: 25, color: 0x5439C6, scoreColor: '#c084fc' }, 
-      normal: { radius: 26, speed: 2.0, points: 10, color: 0x5439C6, scoreColor: '#c084fc' }, 
-      large: { radius: 34, speed: 1.4, points: 5, color: 0x5439C6, scoreColor: '#c084fc' },  
-      special: { radius: 22, speed: 4.0, points: 50, color: 0x5439C6, scoreColor: '#e879f9' }
+      small: { radius: 34, speed: 3.2, points: 25, scoreColor: '#c084fc' }, 
+      normal: { radius: 44, speed: 2.0, points: 10, scoreColor: '#c084fc' }, 
+      large: { radius: 52, speed: 1.4, points: 5, scoreColor: '#c084fc' },  
+      special: { radius: 40, speed: 3.8, points: 50, scoreColor: '#e879f9' }
     };
 
     const config = types[type] || types.normal;
-    this.radius = config.radius * 1.35; // Size mapped to match game proportions comfortably
+    this.radius = config.radius;
     this.speed = config.speed;
     this.points = config.points;
-    this.color = config.color;
     this.scoreColor = config.scoreColor;
 
     // Horizontal sway config (sine wave simulation)
@@ -29,86 +133,31 @@ export class Balloon {
     this.swayOffset = Math.random() * Math.PI * 2;
     this.time = 0;
 
-    // Create the container and graphics
+    // Container
     this.view = new Container();
     this.view.x = x;
     this.view.y = y;
 
-    this.baseGraphics = new Graphics();
-    this.overlayGraphics = new Graphics();
-    this.maskGraphics = new Graphics();
+    // Balloon body sprite using the Figma-exact generated texture
+    this.sprite = new Sprite(getBalloonTexture());
+    this.sprite.anchor.set(0.5);
+    this.sprite.width = this.radius * 2;
+    this.sprite.height = this.radius * 2;
+    this.view.addChild(this.sprite);
 
-    this.view.addChild(this.baseGraphics);
-    this.view.addChild(this.overlayGraphics);
-    this.view.addChild(this.maskGraphics);
-    
-    // Mask the overlays to stay inside the balloon bounds
-    this.overlayGraphics.mask = this.maskGraphics;
-
-    this.drawBalloon();
-
-    // Draw the letter on the balloon center using Inter 700
+    // Letter Text: Inter 700, #FFFFFF
     const textStyle = new TextStyle({
       fontFamily: '"Inter", sans-serif',
-      fontSize: Math.round(this.radius * 1.2),
+      fontSize: Math.round(this.radius * 1.23), // 64px on 104px balloon
       fontWeight: '700',
       fill: '#ffffff',
-      dropShadow: {
-        alpha: 0.15,
-        angle: Math.PI / 2,
-        blur: 3,
-        color: 0x000000,
-        distance: 1
-      },
       align: 'center'
     });
     this.letterText = new Text({ text: this.letter, style: textStyle });
     this.letterText.anchor.set(0.5);
     this.letterText.x = 0;
-    this.letterText.y = 0; // centered perfectly
+    this.letterText.y = -this.radius * 0.04; // optical center for Arabic glyphs
     this.view.addChild(this.letterText);
-  }
-
-  drawBalloon() {
-    const r = this.radius;
-    
-    // Base circle: #5439C6 with glassy outer border effect
-    this.baseGraphics.clear();
-    this.baseGraphics.circle(0, 0, r);
-    this.baseGraphics.fill({ color: this.color }); 
-    // Inset border simulation
-    this.baseGraphics.stroke({ width: 2, color: 0x06312e, alpha: 0.75 });
-
-    // Overlays (Glass effects from provided CSS)
-    this.overlayGraphics.clear();
-    
-    // Top & Bottom teal ambient inset shadows (rgba(6, 49, 46, 0.77))
-    this.overlayGraphics.ellipse(0, r * 0.7, r * 0.9, r * 0.45);
-    this.overlayGraphics.fill({ color: 0x06312e, alpha: 0.55 });
-
-    this.overlayGraphics.ellipse(0, -r * 0.7, r * 0.9, r * 0.45);
-    this.overlayGraphics.fill({ color: 0x06312e, alpha: 0.45 });
-
-    // Dark translucent inner circle (.balloon-dark: rgba(0, 4, 4, 0.34))
-    this.overlayGraphics.circle(-0.307 * r, 0.173 * r, 0.788 * r);
-    this.overlayGraphics.fill({ color: 0x000404, alpha: 0.34 });
-
-    // Purple / pink glass reflection (.balloon-purple: rgba(229, 167, 255, 0.32))
-    this.overlayGraphics.circle(0.519 * r, -0.115 * r, 0.5 * r);
-    this.overlayGraphics.fill({ color: 0xE5A7FF, alpha: 0.32 });
-
-    // Main glass highlight overlay (.balloon-highlight)
-    this.overlayGraphics.circle(-0.15 * r, -0.15 * r, 0.75 * r);
-    this.overlayGraphics.fill({ color: 0xffffff, alpha: 0.15 });
-
-    // Small white glass reflection / shine (.balloon-shine: rgba(255, 255, 255, 0.67))
-    this.overlayGraphics.ellipse(0.426 * r, -0.698 * r, 0.099 * r, 0.110 * r);
-    this.overlayGraphics.fill({ color: 0xffffff, alpha: 0.67 });
-
-    // Mask circle to clip everything to the balloon perimeter
-    this.maskGraphics.clear();
-    this.maskGraphics.circle(0, 0, r);
-    this.maskGraphics.fill({ color: 0xffffff });
   }
 
   update(ticker, scrollX) {
@@ -135,7 +184,7 @@ export class Balloon {
   }
 
   destroy() {
-    this.view.destroy({ children: true });
+    // Destroy display objects without destroying shared texture
+    this.view.destroy({ children: true, texture: false });
   }
 }
-
