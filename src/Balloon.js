@@ -39,28 +39,50 @@ function getBalloonTexture() {
   ctx.fillStyle = 'rgba(217, 217, 217, 0.55)';
   ctx.fillRect(0, 0, size, size);
 
-  // 3. Ellipse 247 Inset Shadows:
-  // box-shadow: inset 0px -5px 7.7px rgba(6, 49, 46, 0.77), inset 0px 4px 28.2px rgba(6, 49, 46, 0.81)
-  const drawInsetShadow = (offsetX, offsetY, blur, color) => {
-    ctx.save();
-    const margin = blur * 2 + Math.max(Math.abs(offsetX), Math.abs(offsetY)) + 40;
-    ctx.beginPath();
-    ctx.rect(cx - r - margin, cy - r - margin, (r + margin) * 2, (r + margin) * 2);
-    ctx.arc(cx, cy, r, 0, Math.PI * 2, true); // cutout circular hole
-    ctx.shadowColor = color;
-    ctx.shadowBlur = blur;
-    ctx.shadowOffsetX = offsetX;
-    ctx.shadowOffsetY = offsetY;
-    ctx.fillStyle = color;
-    ctx.fill('evenodd');
-    ctx.restore();
-  };
+  // 3. Ellipse 247 Inset Shadows with visible Gaussian blur:
+  // - Top inset shadow: 0px 4px 28.2px rgba(6, 49, 46, 0.81)
+  // - Bottom inset shadow: 0px -5px 7.7px rgba(6, 49, 46, 0.77)
+  
+  // Ambient radial rim shadow around perimeter
+  const rimGrad = ctx.createRadialGradient(cx, cy, r * 0.72, cx, cy, r);
+  rimGrad.addColorStop(0, 'rgba(6, 49, 46, 0)');
+  rimGrad.addColorStop(1, 'rgba(6, 49, 46, 0.4)');
+  ctx.fillStyle = rimGrad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fill();
 
-  // Top inset shadow: 0px 4px 28.2px rgba(6, 49, 46, 0.81)
-  drawInsetShadow(0, 4 * s, 28.2 * s, 'rgba(6, 49, 46, 0.81)');
+  // Top blurred inset shadow (deep 28.2px blur)
+  ctx.save();
+  try {
+    ctx.filter = `blur(${9 * s}px)`;
+  } catch (e) {}
+  const topShadowGrad = ctx.createLinearGradient(cx, cy - r - 4 * s, cx, cy - r + 38 * s);
+  topShadowGrad.addColorStop(0, 'rgba(6, 49, 46, 0.95)');
+  topShadowGrad.addColorStop(0.35, 'rgba(6, 49, 46, 0.65)');
+  topShadowGrad.addColorStop(0.7, 'rgba(6, 49, 46, 0.25)');
+  topShadowGrad.addColorStop(1, 'rgba(6, 49, 46, 0)');
+  ctx.fillStyle = topShadowGrad;
+  ctx.beginPath();
+  ctx.ellipse(cx, cy - r + 12 * s, r * 0.98, 28 * s, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 
-  // Bottom inset shadow: 0px -5px 7.7px rgba(6, 49, 46, 0.77)
-  drawInsetShadow(0, -5 * s, 7.7 * s, 'rgba(6, 49, 46, 0.77)');
+  // Bottom blurred inset shadow (7.7px blur)
+  ctx.save();
+  try {
+    ctx.filter = `blur(${4 * s}px)`;
+  } catch (e) {}
+  const bottomShadowGrad = ctx.createLinearGradient(cx, cy + r + 4 * s, cx, cy + r - 22 * s);
+  bottomShadowGrad.addColorStop(0, 'rgba(6, 49, 46, 0.9)');
+  bottomShadowGrad.addColorStop(0.4, 'rgba(6, 49, 46, 0.55)');
+  bottomShadowGrad.addColorStop(0.75, 'rgba(6, 49, 46, 0.2)');
+  bottomShadowGrad.addColorStop(1, 'rgba(6, 49, 46, 0)');
+  ctx.fillStyle = bottomShadowGrad;
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + r - 8 * s, r * 0.95, 18 * s, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 
   // 4. Ellipse 249: rgba(0, 4, 4, 0.34)
   // width: 82px, height: 82px, left: 6131px, top: 797px (relative: left 3, top 20)
