@@ -4,6 +4,7 @@
   "description": "Boy Game built with PixiJS and Spine",
   "private": true,
   "scripts": {
+    "dev": "vite --port 5175",
     "start": "vite --port 5175",
     "build": "vite build"
   },

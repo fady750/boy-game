@@ -8,16 +8,16 @@ export class Balloon {
     this.letter = letter;
     this.active = true;
 
-    // Different balloon types config
+    // Different balloon types config (all using the glassy #5439C6 style)
     const types = {
-      small: { radius: 15, speed: 3.5, points: 25, color: 0xff4081, scoreColor: '#ff4081' }, // Fast and hot pink
-      normal: { radius: 24, speed: 2.0, points: 10, color: 0x00e5ff, scoreColor: '#00e5ff' }, // Standard and cyan
-      large: { radius: 34, speed: 1.2, points: 5, color: 0xffeb3b, scoreColor: '#ffeb3b' },  // Slow and yellow
-      special: { radius: 19, speed: 4.2, points: 50, color: 0xb388ff, scoreColor: '#b388ff' } // Very fast and neon purple
+      small: { radius: 18, speed: 3.2, points: 25, color: 0x5439C6, scoreColor: '#c084fc' }, 
+      normal: { radius: 26, speed: 2.0, points: 10, color: 0x5439C6, scoreColor: '#c084fc' }, 
+      large: { radius: 34, speed: 1.4, points: 5, color: 0x5439C6, scoreColor: '#c084fc' },  
+      special: { radius: 22, speed: 4.0, points: 50, color: 0x5439C6, scoreColor: '#e879f9' }
     };
 
     const config = types[type] || types.normal;
-    this.radius = config.radius;
+    this.radius = config.radius * 1.35; // Size mapped to match game proportions comfortably
     this.speed = config.speed;
     this.points = config.points;
     this.color = config.color;
@@ -34,51 +34,81 @@ export class Balloon {
     this.view.x = x;
     this.view.y = y;
 
-    this.graphics = new Graphics();
-    this.drawBalloon();
-    this.view.addChild(this.graphics);
+    this.baseGraphics = new Graphics();
+    this.overlayGraphics = new Graphics();
+    this.maskGraphics = new Graphics();
 
-    // Draw the letter on the balloon center
+    this.view.addChild(this.baseGraphics);
+    this.view.addChild(this.overlayGraphics);
+    this.view.addChild(this.maskGraphics);
+    
+    // Mask the overlays to stay inside the balloon bounds
+    this.overlayGraphics.mask = this.maskGraphics;
+
+    this.drawBalloon();
+
+    // Draw the letter on the balloon center using Inter 700
     const textStyle = new TextStyle({
-      fontFamily: 'Cairo',
-      fontSize: Math.round(this.radius * 0.95),
-      fontWeight: '800',
+      fontFamily: '"Inter", sans-serif',
+      fontSize: Math.round(this.radius * 1.2),
+      fontWeight: '700',
       fill: '#ffffff',
-      stroke: { color: 0x121621, width: 3.5 },
+      dropShadow: {
+        alpha: 0.15,
+        angle: Math.PI / 2,
+        blur: 3,
+        color: 0x000000,
+        distance: 1
+      },
       align: 'center'
     });
     this.letterText = new Text({ text: this.letter, style: textStyle });
     this.letterText.anchor.set(0.5);
     this.letterText.x = 0;
-    this.letterText.y = -this.radius * 0.08; // position slightly above origin for oval center alignment
+    this.letterText.y = 0; // centered perfectly
     this.view.addChild(this.letterText);
   }
 
   drawBalloon() {
     const r = this.radius;
-    const g = this.graphics;
-    g.clear();
+    
+    // Base circle: #5439C6 with glassy outer border effect
+    this.baseGraphics.clear();
+    this.baseGraphics.circle(0, 0, r);
+    this.baseGraphics.fill({ color: this.color }); 
+    // Inset border simulation
+    this.baseGraphics.stroke({ width: 2, color: 0x06312e, alpha: 0.75 });
 
-    // 1. Draw string first (rendered behind the body)
-    g.moveTo(0, r * 1.1);
-    g.bezierCurveTo(-4, r + 12, 4, r + 24, 0, r + 36);
-    g.stroke({ width: 1.5, color: 0xffffff, alpha: 0.4 });
+    // Overlays (Glass effects from provided CSS)
+    this.overlayGraphics.clear();
+    
+    // Top & Bottom teal ambient inset shadows (rgba(6, 49, 46, 0.77))
+    this.overlayGraphics.ellipse(0, r * 0.7, r * 0.9, r * 0.45);
+    this.overlayGraphics.fill({ color: 0x06312e, alpha: 0.55 });
 
-    // 2. Draw balloon body (slight vertical oval stretch)
-    g.ellipse(0, 0, r, r * 1.15);
-    g.fill({ color: this.color });
-    g.stroke({ width: 2, color: 0xffffff, alpha: 0.25 });
+    this.overlayGraphics.ellipse(0, -r * 0.7, r * 0.9, r * 0.45);
+    this.overlayGraphics.fill({ color: 0x06312e, alpha: 0.45 });
 
-    // 3. Draw bottom knot (triangle shape)
-    g.moveTo(-3, r * 1.12);
-    g.lineTo(3, r * 1.12);
-    g.lineTo(0, r * 1.12 + 5);
-    g.lineTo(-3, r * 1.12);
-    g.fill({ color: this.color });
+    // Dark translucent inner circle (.balloon-dark: rgba(0, 4, 4, 0.34))
+    this.overlayGraphics.circle(-0.307 * r, 0.173 * r, 0.788 * r);
+    this.overlayGraphics.fill({ color: 0x000404, alpha: 0.34 });
 
-    // 4. Draw glossy 3D highlight (top-left glare)
-    g.ellipse(-r * 0.35, -r * 0.45, r * 0.28, r * 0.16);
-    g.fill({ color: 0xffffff, alpha: 0.55 });
+    // Purple / pink glass reflection (.balloon-purple: rgba(229, 167, 255, 0.32))
+    this.overlayGraphics.circle(0.519 * r, -0.115 * r, 0.5 * r);
+    this.overlayGraphics.fill({ color: 0xE5A7FF, alpha: 0.32 });
+
+    // Main glass highlight overlay (.balloon-highlight)
+    this.overlayGraphics.circle(-0.15 * r, -0.15 * r, 0.75 * r);
+    this.overlayGraphics.fill({ color: 0xffffff, alpha: 0.15 });
+
+    // Small white glass reflection / shine (.balloon-shine: rgba(255, 255, 255, 0.67))
+    this.overlayGraphics.ellipse(0.426 * r, -0.698 * r, 0.099 * r, 0.110 * r);
+    this.overlayGraphics.fill({ color: 0xffffff, alpha: 0.67 });
+
+    // Mask circle to clip everything to the balloon perimeter
+    this.maskGraphics.clear();
+    this.maskGraphics.circle(0, 0, r);
+    this.maskGraphics.fill({ color: 0xffffff });
   }
 
   update(ticker, scrollX) {
@@ -108,3 +138,4 @@ export class Balloon {
     this.view.destroy({ children: true });
   }
 }
+
