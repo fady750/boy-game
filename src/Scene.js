@@ -1,5 +1,5 @@
 import { Container, Texture, TilingSprite } from 'pixi.js';
-import cityBgImage from './city_bg.png';
+import bgImage from './BG.png';
 
 // Helper function to programmatically blend the left and right edges of an HTMLImageElement
 function makeSeamless(img, overlapPercent = 0.15) {
@@ -99,7 +99,7 @@ export class Scene {
 
     // Load the background image asynchronously using native HTMLImageElement
     const img = new Image();
-    img.src = cityBgImage;
+    img.src = bgImage;
     img.onload = () => {
       const seamlessTexture = makeSeamless(img);
       const bgScale = height / seamlessTexture.height;

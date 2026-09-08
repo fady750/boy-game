@@ -5,7 +5,7 @@ import { Robot } from './Robot';
 import { Balloon } from './Balloon';
 import robotImage from './robot.png';
 import robot2Image from './robot2.png';
-import cityBgImage from './city_bg.png';
+import bgImage from './BG.png';
 import { Bullet } from './Bullet';
 import { playShootSound, playPopSound, playVictorySound, playErrorSound } from './SoundEffects';
 import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
@@ -74,7 +74,7 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
     },
     {
       alias: 'cityBg',
-      src: cityBgImage,
+      src: bgImage,
     },
     {
       alias: 'platform',
