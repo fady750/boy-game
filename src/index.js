@@ -97,6 +97,15 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
   player.view.y = app.screen.height - scene.floorHeight;
   player.view.scale.set(scene.scale * 0.5);
 
+  // Handle window resizing dynamically to maintain center positioning
+  window.addEventListener('resize', () => {
+    scene.resize(app.screen.width, app.screen.height);
+    scene.view.y = app.screen.height;
+    player.view.x = app.screen.width / 2;
+    player.view.y = app.screen.height - scene.floorHeight;
+    player.view.scale.set(scene.scale * 0.5);
+  });
+
   // Containers for balloons, bullets, and floating effects
   const balloonContainer = new Container();
   const bulletContainer = new Container();

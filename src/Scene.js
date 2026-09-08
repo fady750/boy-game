@@ -60,6 +60,9 @@ function makeSeamless(img, overlapPercent = 0.15, cropTopPercent = 0.3) {
 // Class for handling the environment.
 export class Scene {
   constructor(width, height) {
+    this.width = width;
+    this.height = height;
+
     // Create a main view that holds all layers.
     this.view = new Container();
 
@@ -85,30 +88,63 @@ export class Scene {
     // Add all layers to the main view.
     this.view.addChild(this.background);
 
+    this.initialCenterX = 0;
+    this._positionX = 0;
+
     // Load the background image asynchronously using native HTMLImageElement
     const img = new Image();
     img.src = bgImage;
     img.onload = () => {
       // Crop top 35% to remove the stars and focus on the landscape/ground
       const seamlessTexture = makeSeamless(img, 0.15, 0.35);
-      const bgScale = height / seamlessTexture.height;
+      // Ensure texture repeats endlessly in WebGL
+      seamlessTexture.source.style.addressMode = 'repeat';
+      
+      const bgScale = this.height / seamlessTexture.height;
       this.background.texture = seamlessTexture;
       this.background.tileScale.set(bgScale, bgScale);
+      
+      // Center the background image horizontally on screen
+      const scaledWidth = seamlessTexture.width * bgScale;
+      this.initialCenterX = (this.width - scaledWidth) / 2;
+      this.positionX = this._positionX;
     };
-    
-    this._positionX = 0;
   }
 
-  // Use a private variable to track position since we don't have a platform sprite anymore
+  resize(width, height) {
+    this.width = width;
+    this.height = height;
+    this.scale = height / 1080;
+    this.floorHeight = height * 0.15;
+    this.background.width = width;
+    this.background.height = height;
+    
+    if (this.background.texture && this.background.texture.width > 1) {
+      const bgScale = height / this.background.texture.height;
+      this.background.tileScale.set(bgScale, bgScale);
+      const scaledWidth = this.background.texture.width * bgScale;
+      this.initialCenterX = (width - scaledWidth) / 2;
+      this.positionX = this._positionX;
+    }
+  }
+
+  // Use a private variable to track position
   get positionX() {
     return this._positionX;
   }
 
   // Set the horizontal position of the background layer.
+  // Re-centers and seamlessly resets/loops the background when the robot moves left or right.
   set positionX(value) {
     this._positionX = value;
-    // Scroll the background at full speed since it represents the ground now
-    this.background.tilePosition.x = value; 
+    if (this.background && this.background.texture && this.background.texture.width > 1) {
+      const scaledWidth = this.background.texture.width * this.background.tileScale.x;
+      const rawX = this.initialCenterX + value;
+      // Seamlessly wrap/reset tile position around the scaled texture width
+      this.background.tilePosition.x = ((rawX % scaledWidth) + scaledWidth) % scaledWidth;
+    } else {
+      this.background.tilePosition.x = this.initialCenterX + value;
+    }
   }
 }
 
