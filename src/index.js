@@ -5,6 +5,12 @@ import { Robot } from './Robot';
 import { Balloon } from './Balloon';
 import robotImage from './robot.png';
 import robot2Image from './robot2.png';
+import hakimCore from './hakim/core.png';
+import hakimHead from './hakim/head.png';
+import hakimHappyHead from './hakim/happy.png';
+import hakimSadHead from './hakim/sad.png';
+import hakimRightArm from './hakim/right-arm.png';
+import hakimLeftArm from './hakim/left-arm.png';
 import bgImage from './BG.png';
 import { Bullet } from './Bullet';
 import { playShootSound, playPopSound, playVictorySound, playErrorSound } from './SoundEffects';
@@ -35,16 +41,41 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
   let gameAPI = null;
   let sessionId = null;
   let backendWords = [];
-  
+  let currentQuestionIndex = 0;
+  let targetWord = '';
+  let targetWordId = null;
+  let targetLetters = [];
+  let collectedLetters = [];
+  let sessionAnswers = [];
+
+  const loadingOverlayEl = document.getElementById('loading-overlay');
+  const errorOverlayEl = document.getElementById('error-overlay');
+  const errorMessageEl = document.getElementById('error-message');
+
+  const showError = (msg) => {
+    if (loadingOverlayEl) loadingOverlayEl.classList.add('hidden');
+    if (errorOverlayEl) {
+      errorOverlayEl.classList.remove('hidden');
+      if (errorMessageEl) errorMessageEl.textContent = msg;
+    }
+  };
+
+  if (!token || !urlLessonId) {
+    showError("Missing authentication token or lesson ID.");
+    return; // block game
+  }
+
   if (token) {
     gameAPI = new GameAPI(token);
     try {
       const gameIdToUse = urlGameId || BOY_GAME_ID;
       const data = await gameAPI.getQuestions(gameIdToUse, urlLessonId);
       
-      // Transform backend questions to word list format
-      backendWords = data.questions.map(q => {
-        // Extract letters from options (which may be objects or strings)
+      // Filter out invalid options and transform backend questions to word list format
+      const validQuestions = data.questions.filter(q => Array.isArray(q.options));
+      
+      backendWords = validQuestions.map(q => {
+        // Extract letters from options (which are array of objects with 'text' property)
         const letters = q.options.map(opt => 
           typeof opt === 'string' ? opt : opt.text
         );
@@ -55,10 +86,12 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
           id: q.id
         };
       });
-      
-      console.log('✅ Loaded', backendWords.length, 'words from backend');
+      // Remove log
+      if (loadingOverlayEl) loadingOverlayEl.classList.add('hidden');
     } catch (err) {
-      console.error('❌ Failed to load words from backend:', err);
+      // Remove error log
+      showError("Failed to load game questions.");
+      return; // block game
     }
   }
 
@@ -72,6 +105,12 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
       alias: 'robot2',
       src: robot2Image,
     },
+    { alias: 'hakim-core', src: hakimCore },
+    { alias: 'hakim-head', src: hakimHead },
+    { alias: 'hakim-happy-head', src: hakimHappyHead },
+    { alias: 'hakim-sad-head', src: hakimSadHead },
+    { alias: 'hakim-right-arm', src: hakimRightArm },
+    { alias: 'hakim-left-arm', src: hakimLeftArm },
     {
       alias: 'cityBg',
       src: bgImage,
@@ -90,12 +129,19 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
 
   // Create our   
   const player = new Robot();
+  player.setHeadFrames({
+    normal: Assets.get('hakim-head'),
+    happy: Assets.get('hakim-happy-head'),
+    sad: Assets.get('hakim-sad-head'),
+  });
 
   // Adjust views' transformation.
   scene.view.y = app.screen.height;
   player.view.x = app.screen.width / 2;
   player.view.y = app.screen.height - scene.floorHeight;
-  player.view.scale.set(scene.scale * 0.5);
+  // A wider camera framing gives the player more room to see incoming balloons.
+  const PLAYER_CAMERA_SCALE = 0.22;
+  player.view.scale.set(scene.scale * PLAYER_CAMERA_SCALE);
 
   // Handle window resizing dynamically to maintain center positioning
   window.addEventListener('resize', () => {
@@ -103,7 +149,8 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
     scene.view.y = app.screen.height;
     player.view.x = app.screen.width / 2;
     player.view.y = app.screen.height - scene.floorHeight;
-    player.view.scale.set(scene.scale * 0.5);
+    player.groundY = player.view.y;
+    player.view.scale.set(scene.scale * PLAYER_CAMERA_SCALE);
   });
 
   // Containers for balloons, bullets, and floating effects
@@ -151,9 +198,6 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
   // Use backend words if available, otherwise fallback
   const wordsList = backendWords.length > 0 ? backendWords : fallbackWords;
   
-  let targetWord = '';
-  let targetLetters = [];
-  let collectedLetters = [];
 
   // HUD elements references
   const scoreValEl = document.getElementById('score-val');
@@ -164,11 +208,18 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
   const winOverlayEl = document.getElementById('win-overlay');
   const completedWordEl = document.getElementById('completed-word');
   const finalScoreValEl = document.getElementById('final-score-val');
+  const finalStarsValEl = document.getElementById('final-stars-val');
+  const finalCoinsValEl = document.getElementById('final-coins-val');
+  const finalXpValEl = document.getElementById('final-xp-val');
 
   // Initialize word target
   const initWordTarget = () => {
-    const wordObj = wordsList[Math.floor(Math.random() * wordsList.length)];
+    if (currentQuestionIndex >= wordsList.length) {
+      return false; // No more questions
+    }
+    const wordObj = wordsList[currentQuestionIndex];
     targetWord = wordObj.word;
+    targetWordId = wordObj.id;
     targetLetters = wordObj.letters;
     collectedLetters = new Array(targetLetters.length).fill(false);
 
@@ -183,6 +234,7 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
         slotsContainer.appendChild(slot);
       }
     }
+    return true;
   };
 
   const updateHUD = () => {
@@ -218,6 +270,9 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
     comboTimer = 0;
     gameWon = false;
     gameStarted = false;
+    currentQuestionIndex = 0;
+    sessionId = null; // Clear session ID so a new one is created on next start
+    sessionAnswers = [];
 
     // Destroy existing Pixi components
     balloons.forEach(b => b.destroy());
@@ -282,7 +337,7 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
 
     // Ignore the update loops while the character is doing the spawn animation.
     if (player.isSpawning()) {
-      player.update();
+      player.update(app.ticker.deltaTime);
       return;
     }
 
@@ -299,10 +354,11 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
       if (gameAPI && !sessionId) {
         const gameIdToUse = urlGameId || BOY_GAME_ID;
         gameAPI.startSession(gameIdToUse, urlLessonId).then(session => {
-          sessionId = session.id;
-          console.log('✅ Game session started:', sessionId);
+          sessionId = session.sessionId || session.id;
+          if (sessionId === 'null') sessionId = null;
+          // Session started
         }).catch(err => {
-          console.error('❌ Failed to start session:', err);
+          // Silent catch
         });
       }
       
@@ -316,22 +372,26 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
     if (player.state.run && player.state.walk) player.state.run = true;
     else player.state.run = controller.keys.left.doubleTap || controller.keys.right.doubleTap;
     player.state.hover = controller.keys.down.pressed;
-    if (controller.keys.left.pressed) player.direction = -1;
-    else if (controller.keys.right.pressed) player.direction = 1;
+    // Keyboard direction owns the symmetric A/D movement and facing.
+    if (controller.keys.left.pressed && !controller.keys.right.pressed) player.direction = -1;
+    else if (controller.keys.right.pressed && !controller.keys.left.pressed) player.direction = 1;
     player.state.jump = controller.keys.up.pressed;
     player.state.shoot = controller.keys.shoot.pressed;
 
-    // Update character's animation based on the latest state.
-    player.update();
+    // Keep the body facing the pointer while it is idle; the arm still applies
+    // its own fixed-shoulder safety arc in robot-local space.
+    if (!player.state.walk && controller.lastShootType === 'pointer'
+      && Math.abs(controller.pointer.x - player.view.x) > 6) {
+      player.direction = controller.pointer.x < player.view.x ? -1 : 1;
+    }
 
     // Dynamically update aiming targets (either tracking the pointer or aiming straight ahead)
     if (controller.lastShootType === 'pointer') {
       player.aimAt(controller.pointer.x, controller.pointer.y);
-    } else {
-      const targetX = player.view.x + 300 * player.direction;
-      const targetY = player.view.y - 90 * (scene.scale * 0.32 / 0.25);
-      player.aimAt(targetX, targetY);
     }
+
+    // Update character animation after the target pose has been calculated.
+    player.update(app.ticker.deltaTime);
 
     // Determine the scene's horizontal scrolling speed based on the character's state.
     let speed = 1.25;
@@ -352,20 +412,24 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
 
         // Instantly face the target coordinates when shooting via mouse click
         if (controller.lastShootType === 'pointer') {
-          if (controller.pointer.x < player.view.x) {
-            player.direction = -1;
-          } else {
-            player.direction = 1;
+          if (!player.state.walk) {
+            player.direction = controller.pointer.x < player.view.x ? -1 : 1;
           }
           // Update aiming immediately for correct initial bullet spawn orientation
           player.aimAt(controller.pointer.x, controller.pointer.y);
-          player.update();
+          player.update(app.ticker.deltaTime);
         }
 
-        // Get accurate muzzle coordinates dynamically from the skeleton's muzzle bone
+        // The complete left-arm sprite provides the laser muzzle.
         const muzzlePos = player.getMuzzlePosition();
         const gunX = muzzlePos.x;
         const gunY = muzzlePos.y;
+        // Pointer shots travel from the transformed muzzle directly toward the
+        // pointer position captured at click time. Keyboard shots retain the
+        // existing arm-forward direction.
+        const angle = controller.lastShootType === 'pointer'
+          ? Math.atan2(controller.pointer.y - gunY, controller.pointer.x - gunX)
+          : player.getGunAngle();
 
         // Spawn muzzle flash sparks!
         const sparkCount = 8;
@@ -379,13 +443,9 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
           p.x = gunX;
           p.y = gunY;
 
-          // Project sparks outwards in the direction of fire
-          let baseAngle = player.direction === 1 ? 0 : Math.PI;
-          if (controller.lastShootType === 'pointer') {
-            const dx = controller.pointer.x - gunX;
-            const dy = controller.pointer.y - gunY;
-            baseAngle = Math.atan2(dy, dx);
-          }
+          // Project sparks along the exact same muzzle-to-target direction as
+          // the bullet, so the visual effect never diverges from the shot.
+          const baseAngle = angle;
           const sparkAngle = baseAngle + (Math.random() - 0.5) * 0.8;
           const speed = 2 + Math.random() * 5;
           p.vx = Math.cos(sparkAngle) * speed;
@@ -394,16 +454,6 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
 
           effectContainer.addChild(p);
           particles.push(p);
-        }
-
-        let angle = 0;
-        if (controller.lastShootType === 'pointer') {
-          const dx = controller.pointer.x - gunX;
-          const dy = controller.pointer.y - gunY;
-          angle = Math.atan2(dy, dx);
-        } else {
-          // Shoot horizontally in front of the character when keyboard triggers
-          angle = player.direction === 1 ? 0 : Math.PI;
         }
 
         const bullet = new Bullet(gunX, gunY, angle);
@@ -516,7 +566,7 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
 
       for (let j = balloons.length - 1; j >= 0; j--) {
         const balloon = balloons[j];
-        if (!balloon.active) continue;
+        if (!balloon.canBeHit()) continue;
 
         // Circle-to-Circle Collision Check
         const distSq = (bullet.x - balloon.x) ** 2 + (bullet.y - balloon.y) ** 2;
@@ -524,7 +574,6 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
         if (distSq < minDist ** 2) {
           // Deactivate entities
           bullet.active = false;
-          balloon.active = false;
 
           // Process letter collection (must be in sequential order)
           let letterCollected = false;
@@ -540,6 +589,7 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
           if (letterCollected) {
             // Sound pop
             playPopSound();
+            player.triggerHeadAnimation('correct');
 
             // Increment combo score
             combo++;
@@ -552,6 +602,7 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
           } else {
             // Mistake penalty!
             playErrorSound();
+            player.triggerHeadAnimation('wrong');
 
             // Reset combo
             combo = 0;
@@ -570,7 +621,10 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
 
           updateHUD();
 
-          // Spawn particle explosion
+          // Every hit bursts exactly once at the collision point. Marking the
+          // balloon inactive prevents any later bullet from processing it.
+          balloon.active = false;
+          balloon.view.visible = false;
           spawnExplosion(balloon.x, balloon.y, balloon.color);
 
           // Spawn floating score/error display text
@@ -588,37 +642,74 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
           effectContainer.addChild(ft);
           floatingTexts.push(ft);
 
-          // Check if game won (all target word letters collected)
+          // Check if word is complete
           const allCollected = collectedLetters.every(c => c);
           if (allCollected) {
-            gameWon = true;
             playVictorySound();
             
-            // Complete backend session
-            if (gameAPI && sessionId) {
-              gameAPI.completeSession(sessionId).then(result => {
-                console.log('✅ Session completed:', result);
-              }).catch(err => {
-                console.error('❌ Failed to complete session:', err);
-              });
-            }
+            // Clean up balloons and bullets from screen
+            balloons.forEach(b => b.destroy());
+            balloons.length = 0;
+            bullets.forEach(b => b.destroy());
+            bullets.length = 0;
 
-            if (winOverlayEl) {
-              winOverlayEl.classList.remove('hidden');
+            // Accumulate answers for this question
+            sessionAnswers.push({
+              questionId: targetWordId,
+              selectedAnswer: targetWord
+            });
+
+            // Move to next question
+            currentQuestionIndex++;
+            const hasMore = initWordTarget();
+            
+            if (hasMore) {
+              // Update HUD for next word and continue playing
+              updateHUD();
+            } else {
+              // No more words, completely finish the game session
+              gameWon = true;
+
+              if (gameAPI && sessionId) {
+                gameAPI.submitAnswers(sessionId, sessionAnswers)
+                  .then(() => gameAPI.completeSession(sessionId))
+                  .then(result => {
+                    if (finalScoreValEl) finalScoreValEl.textContent = result.score || score;
+                    if (finalStarsValEl) finalStarsValEl.textContent = result.stars || 0;
+                    if (finalCoinsValEl) finalCoinsValEl.textContent = result.coins || 0;
+                    if (finalXpValEl) finalXpValEl.textContent = result.experience || 0;
+                    
+                    const restartHintEl = document.querySelector('.restart-hint');
+                    if (restartHintEl) restartHintEl.textContent = 'اضغط على زر المسافة أو انقر لإعادة اللعب';
+                  })
+                  .catch(err => {
+                    const restartHintEl = document.querySelector('.restart-hint');
+                    if (restartHintEl) restartHintEl.textContent = 'حدث خطأ. اضغط لإعادة اللعب';
+                  });
+              }
+
+              if (winOverlayEl) {
+                winOverlayEl.classList.remove('hidden');
+              }
+              if (completedWordEl) {
+                completedWordEl.textContent = 'جميع الكلمات'; // "All words"
+              }
+              // Temporary score update while API fetches the final stats
+              if (finalScoreValEl) {
+                finalScoreValEl.textContent = String(score).padStart(4, '0');
+              }
             }
-            if (completedWordEl) {
-              completedWordEl.textContent = targetWord;
-            }
-            if (finalScoreValEl) {
-              finalScoreValEl.textContent = String(score).padStart(4, '0');
-            }
+            
+            return; // Exit the ticker loop immediately since all objects are destroyed
           }
 
           // Clean up models immediately
           bullet.destroy();
           bullets.splice(i, 1);
-          balloon.destroy();
-          balloons.splice(j, 1);
+          if (letterCollected) {
+            balloon.destroy();
+            balloons.splice(j, 1);
+          }
 
           break; // break loop for this bullet since it exploded
         }

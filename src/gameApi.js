@@ -26,29 +26,29 @@ export class GameAPI {
 
   async getQuestions(gameId, lessonId) {
     const endpoint = lessonId 
-      ? `/student-games/${gameId}/questions?lessonId=${lessonId}`
-      : `/student-games/${gameId}/questions`;
+      ? `/student/games/${gameId}/questions?lessonId=${lessonId}`
+      : `/student/games/${gameId}/questions`;
     return this.request(endpoint);
   }
 
   async startSession(gameId, lessonId) {
     const endpoint = lessonId 
-      ? `/student-games/${gameId}/sessions?lessonId=${lessonId}`
-      : `/student-games/${gameId}/sessions`;
+      ? `/student/games/${gameId}/sessions?lessonId=${lessonId}`
+      : `/student/games/${gameId}/sessions`;
     return this.request(endpoint, {
       method: 'POST',
     });
   }
 
   async submitAnswers(sessionId, answers) {
-    return this.request(`/student-games/sessions/${sessionId}/submit-answers`, {
+    return this.request(`/student/games/sessions/${sessionId}/submit-answers`, {
       method: 'POST',
       body: JSON.stringify({ answers }),
     });
   }
 
   async completeSession(sessionId) {
-    return this.request(`/student-games/sessions/${sessionId}/complete`, {
+    return this.request(`/student/games/sessions/${sessionId}/complete`, {
       method: 'POST',
     });
   }

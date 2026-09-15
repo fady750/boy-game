@@ -1,61 +1,5 @@
-import { Container, Texture, TilingSprite } from 'pixi.js';
+import { Assets, Container, Sprite } from 'pixi.js';
 import bgImage from './BG.png';
-
-// Helper function to programmatically blend the left and right edges of an HTMLImageElement
-function makeSeamless(img, overlapPercent = 0.15, cropTopPercent = 0.3) {
-  const canvas = document.createElement('canvas');
-  const w = img.width;
-  const h = img.height;
-  const cropY = Math.floor(h * cropTopPercent);
-  const newH = h - cropY;
-  
-  const overlap = Math.floor(w * overlapPercent);
-  const newW = w - overlap;
-
-  canvas.width = newW;
-  canvas.height = newH;
-  const ctx = canvas.getContext('2d');
-
-  // Draw the main image shifted (cropped on the right and top)
-  ctx.drawImage(img, 0, cropY, newW, newH, 0, 0, newW, newH);
-
-  // Create temporary canvas to hold the blended left-edge overlap
-  const tempCanvas = document.createElement('canvas');
-  tempCanvas.width = overlap;
-  tempCanvas.height = newH;
-  const tempCtx = tempCanvas.getContext('2d');
-
-  // 1. Draw leftmost overlap of the original image (cropped top)
-  tempCtx.drawImage(img, 0, cropY, overlap, newH, 0, 0, overlap, newH);
-  // Apply gradient to fade out from left to right
-  tempCtx.globalCompositeOperation = 'destination-out';
-  const gradOut = tempCtx.createLinearGradient(0, 0, overlap, 0);
-  gradOut.addColorStop(0, 'rgba(0, 0, 0, 0)');
-  gradOut.addColorStop(1, 'rgba(0, 0, 0, 1)');
-  tempCtx.fillStyle = gradOut;
-  tempCtx.fillRect(0, 0, overlap, newH);
-
-  // Draw this onto the right edge of our main canvas
-  ctx.globalCompositeOperation = 'source-over';
-  ctx.drawImage(tempCanvas, newW - overlap, 0);
-
-  // 2. Draw rightmost overlap of the original image (which was cropped out)
-  tempCtx.globalCompositeOperation = 'source-over';
-  tempCtx.clearRect(0, 0, overlap, newH);
-  tempCtx.drawImage(img, w - overlap, cropY, overlap, newH, 0, 0, overlap, newH);
-  // Apply gradient to fade out from right to left (fade in from left to right)
-  tempCtx.globalCompositeOperation = 'destination-out';
-  const gradIn = tempCtx.createLinearGradient(0, 0, overlap, 0);
-  gradIn.addColorStop(0, 'rgba(0, 0, 0, 1)');
-  gradIn.addColorStop(1, 'rgba(0, 0, 0, 0)');
-  tempCtx.fillStyle = gradIn;
-  tempCtx.fillRect(0, 0, overlap, newH);
-
-  // Draw this onto the left edge of our main canvas
-  ctx.drawImage(tempCanvas, 0, 0);
-
-  return Texture.from(canvas);
-}
 
 // Class for handling the environment.
 export class Scene {
@@ -73,42 +17,29 @@ export class Scene {
     // The ground in the new BG is roughly the bottom 15% to 20% of the visible area.
     this.floorHeight = height * 0.15; 
 
-    // Create the background tiling sprite with a temporary empty texture
-    this.background = new TilingSprite({
-      texture: Texture.EMPTY,
-      width,
-      height,
-      anchor: { x: 0, y: 1 },
-      applyAnchorToTexture: true,
-    });
-
-    // Position the backdrop layers.
-    this.background.y = 0; // Entire screen height since it fills it completely
+    // Background sections live in world space. They are real adjacent sprites,
+    // rather than one screen-sized sprite whose texture is repeatedly shifted.
+    this.background = new Container();
+    this.backgroundSections = [];
+    this.backgroundTexture = null;
+    this.backgroundScale = 1;
+    this.backgroundWidth = 0;
 
     // Add all layers to the main view.
     this.view.addChild(this.background);
 
-    this.initialCenterX = 0;
     this._positionX = 0;
 
-    // Load the background image asynchronously using native HTMLImageElement
-    const img = new Image();
-    img.src = bgImage;
-    img.onload = () => {
-      // Crop top 35% to remove the stars and focus on the landscape/ground
-      const seamlessTexture = makeSeamless(img, 0.15, 0.35);
-      // Ensure texture repeats endlessly in WebGL
-      seamlessTexture.source.style.addressMode = 'repeat';
-      
-      const bgScale = this.height / seamlessTexture.height;
-      this.background.texture = seamlessTexture;
-      this.background.tileScale.set(bgScale, bgScale);
-      
-      // Center the background image horizontally on screen
-      const scaledWidth = seamlessTexture.width * bgScale;
-      this.initialCenterX = (this.width - scaledWidth) / 2;
-      this.positionX = this._positionX;
-    };
+    // Use the supplied background texture unchanged. Its scale is uniform, so
+    // its aspect ratio and ground level are identical in every world tile.
+    Assets.load(bgImage).then((texture) => {
+      const bgScale = this.height / texture.height;
+      this.backgroundTexture = texture;
+      this.backgroundScale = bgScale;
+      this.backgroundWidth = texture.width * bgScale;
+      this.createBackgroundSections();
+      this.layoutBackgroundSections();
+    });
   }
 
   resize(width, height) {
@@ -116,15 +47,11 @@ export class Scene {
     this.height = height;
     this.scale = height / 1080;
     this.floorHeight = height * 0.15;
-    this.background.width = width;
-    this.background.height = height;
-    
-    if (this.background.texture && this.background.texture.width > 1) {
-      const bgScale = height / this.background.texture.height;
-      this.background.tileScale.set(bgScale, bgScale);
-      const scaledWidth = this.background.texture.width * bgScale;
-      this.initialCenterX = (width - scaledWidth) / 2;
-      this.positionX = this._positionX;
+    if (this.backgroundTexture) {
+      this.backgroundScale = height / this.backgroundTexture.height;
+      this.backgroundWidth = this.backgroundTexture.width * this.backgroundScale;
+      this.createBackgroundSections();
+      this.layoutBackgroundSections();
     }
   }
 
@@ -133,18 +60,44 @@ export class Scene {
     return this._positionX;
   }
 
-  // Set the horizontal position of the background layer.
-  // Re-centers and seamlessly resets/loops the background when the robot moves left or right.
-  set positionX(value) {
-    this._positionX = value;
-    if (this.background && this.background.texture && this.background.texture.width > 1) {
-      const scaledWidth = this.background.texture.width * this.background.tileScale.x;
-      const rawX = this.initialCenterX + value;
-      // Seamlessly wrap/reset tile position around the scaled texture width
-      this.background.tilePosition.x = ((rawX % scaledWidth) + scaledWidth) % scaledWidth;
-    } else {
-      this.background.tilePosition.x = this.initialCenterX + value;
+  createBackgroundSections() {
+    if (!this.backgroundTexture || this.backgroundWidth <= 0) return;
+
+    // Cover the viewport plus one section on each side for left/right travel.
+    const sectionCount = Math.ceil(this.width / this.backgroundWidth) + 2;
+    while (this.backgroundSections.length < sectionCount) {
+      const section = new Sprite(this.backgroundTexture);
+      this.background.addChild(section);
+      this.backgroundSections.push(section);
+    }
+    while (this.backgroundSections.length > sectionCount) {
+      const section = this.backgroundSections.pop();
+      this.background.removeChild(section);
+      section.destroy();
     }
   }
-}
 
+  layoutBackgroundSections() {
+    if (!this.backgroundTexture || this.backgroundWidth <= 0) return;
+
+    // positionX is the camera's world-to-screen offset. The section at
+    // `worldLeft` begins at screen x = 0; neighbours are placed exactly one
+    // background width before and after it, with no centering or overlap.
+    const worldLeft = -this._positionX;
+    const currentSection = Math.floor(worldLeft / this.backgroundWidth);
+    const firstSection = currentSection - 1;
+
+    this.backgroundSections.forEach((section, offset) => {
+      const sectionIndex = firstSection + offset;
+      section.scale.set(this.backgroundScale);
+      section.x = sectionIndex * this.backgroundWidth + this._positionX;
+      section.y = -this.height;
+    });
+  }
+
+  // Set the horizontal camera/world offset for the background sections.
+  set positionX(value) {
+    this._positionX = value;
+    this.layoutBackgroundSections();
+  }
+}

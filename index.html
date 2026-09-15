@@ -49,11 +49,39 @@
   <div id="win-overlay" class="glass-panel hidden">
     <h2>🎉 أحسنت! فوز رائع 🎉</h2>
     <p style="font-size: 1.15rem; margin: 10px 0;">لقد نجحت في تجميع كلمة: <span id="completed-word" class="word-glow">قلم</span></p>
+    
+    <div class="stats-row" style="display: flex; gap: 20px; justify-content: center; margin: 15px 0;">
+      <div class="stat-item" style="text-align: center;">
+        <div style="font-size: 2rem;">⭐</div>
+        <div id="final-stars-val" style="font-weight: bold; font-size: 1.2rem;">0</div>
+      </div>
+      <div class="stat-item" style="text-align: center;">
+        <div style="font-size: 2rem;">🪙</div>
+        <div id="final-coins-val" style="font-weight: bold; font-size: 1.2rem;">0</div>
+      </div>
+      <div class="stat-item" style="text-align: center;">
+        <div style="font-size: 2rem;">✨</div>
+        <div id="final-xp-val" style="font-weight: bold; font-size: 1.2rem;">0</div>
+      </div>
+    </div>
+
     <div class="final-score-panel">
       <span class="label" style="color: rgba(255, 255, 255, 0.6); font-size: 0.85rem;">النقاط النهائية</span>
       <span id="final-score-val" class="value text-glow" style="display: block; font-size: 2.4rem; margin-top: 5px;">0000</span>
     </div>
-    <div class="restart-hint">اضغط على زر المسافة أو انقر لإعادة اللعب</div>
+    <div class="restart-hint">جاري تحميل الكلمة التالية...</div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="glass-panel">
+    <h2>جاري التحميل...</h2>
+    <div class="loader"></div>
+  </div>
+
+  <!-- Error Overlay -->
+  <div id="error-overlay" class="glass-panel hidden">
+    <h2 style="color: #ff3333;">خطأ</h2>
+    <p id="error-message">حدث خطأ أثناء تحميل اللعبة.</p>
   </div>
 
   <script type="module" src="/src/index.js"></script>

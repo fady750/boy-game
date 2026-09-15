@@ -1,4 +1,4 @@
-import { Container, Sprite, Texture, Text, TextStyle } from 'pixi.js';
+import { Container, Sprite, Texture, Text, TextStyle, Graphics } from 'pixi.js';
 
 let cachedBalloonTexture = null;
 
@@ -134,19 +134,22 @@ export class Balloon {
     this.type = type;
     this.letter = letter;
     this.active = true;
+    this.hitLockTimer = 0;
+    this.wrongFlashTimer = 0;
 
     // Balloon types configuration matching Figma proportions
     const types = {
-      small: { radius: 34, speed: 3.2, points: 25, scoreColor: '#c084fc' }, 
-      normal: { radius: 44, speed: 2.0, points: 10, scoreColor: '#c084fc' }, 
-      large: { radius: 52, speed: 1.4, points: 5, scoreColor: '#c084fc' },  
-      special: { radius: 40, speed: 3.8, points: 50, scoreColor: '#e879f9' }
+      small: { radius: 34, speed: 3.2, points: 25, color: 0xc084fc, scoreColor: '#c084fc' },
+      normal: { radius: 44, speed: 2.0, points: 10, color: 0x8b5cf6, scoreColor: '#c084fc' },
+      large: { radius: 52, speed: 1.4, points: 5, color: 0x6d4cc4, scoreColor: '#c084fc' },
+      special: { radius: 40, speed: 3.8, points: 50, color: 0xe879f9, scoreColor: '#e879f9' }
     };
 
     const config = types[type] || types.normal;
     this.radius = config.radius;
     this.speed = config.speed;
     this.points = config.points;
+    this.color = config.color;
     this.scoreColor = config.scoreColor;
 
     // Horizontal sway config (sine wave simulation)
@@ -180,10 +183,37 @@ export class Balloon {
     this.letterText.x = 0;
     this.letterText.y = -this.radius * 0.04; // optical center for Arabic glyphs
     this.view.addChild(this.letterText);
+
+    // Kept inside the balloon container so the feedback follows its motion.
+    this.wrongFlash = new Graphics();
+    this.wrongFlash.circle(0, 0, this.radius * 0.94);
+    this.wrongFlash.fill({ color: 0xff2638, alpha: 0.78 });
+    this.wrongFlash.alpha = 0;
+    this.view.addChild(this.wrongFlash);
+  }
+
+  flashWrong() {
+    this.hitLockTimer = 16;
+    this.wrongFlashTimer = 16;
+  }
+
+  canBeHit() {
+    return this.active && this.hitLockTimer <= 0;
   }
 
   update(ticker, scrollX) {
     this.time += ticker.deltaTime;
+    if (this.hitLockTimer > 0) this.hitLockTimer -= ticker.deltaTime;
+    if (this.wrongFlashTimer > 0) {
+      this.wrongFlashTimer -= ticker.deltaTime;
+      const progress = Math.max(0, this.wrongFlashTimer / 16);
+      this.wrongFlash.alpha = progress * 0.8;
+      const pulse = 1 + (1 - progress) * 0.12;
+      this.wrongFlash.scale.set(pulse);
+    } else {
+      this.wrongFlash.alpha = 0;
+      this.wrongFlash.scale.set(1);
+    }
     
     // Float upwards
     this.y -= this.speed * ticker.deltaTime;
