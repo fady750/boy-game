@@ -211,6 +211,15 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
   const finalStarsValEl = document.getElementById('final-stars-val');
   const finalCoinsValEl = document.getElementById('final-coins-val');
   const finalXpValEl = document.getElementById('final-xp-val');
+  const finalPercentValEl = document.getElementById('final-percent-val');
+  const retryBtn = document.getElementById('retry-button');
+
+  if (retryBtn) {
+    retryBtn.addEventListener('click', () => {
+      // Reload page to start a fresh game session
+      window.location.reload();
+    });
+  }
 
   // Initialize word target
   const initWordTarget = () => {
@@ -676,16 +685,13 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
                   .then(() => gameAPI.completeSession(currentSessionId))
                   .then(result => {
                     if (finalScoreValEl) finalScoreValEl.textContent = result.score || score;
+                    if (finalPercentValEl) finalPercentValEl.textContent = (result.percentage || 0) + '%';
                     if (finalStarsValEl) finalStarsValEl.textContent = result.stars || 0;
                     if (finalCoinsValEl) finalCoinsValEl.textContent = result.coins || 0;
                     if (finalXpValEl) finalXpValEl.textContent = result.experience || 0;
-                    
-                    const restartHintEl = document.querySelector('.restart-hint');
-                    if (restartHintEl) restartHintEl.textContent = 'اضغط على زر المسافة أو انقر لإعادة اللعب';
                   })
                   .catch(err => {
-                    const restartHintEl = document.querySelector('.restart-hint');
-                    if (restartHintEl) restartHintEl.textContent = 'حدث خطأ. اضغط لإعادة اللعب';
+                    console.error('Failed to complete session', err);
                   });
               }
 

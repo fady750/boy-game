@@ -45,31 +45,50 @@
     <div class="start-hint">فجر بالوناً للبدء باللعب!</div>
   </div>
 
-  <!-- Victory Overlay panel in Arabic -->
+  <!-- Win Overlay (Final Results Modal) -->
   <div id="win-overlay" class="glass-panel hidden">
-    <h2>🎉 أحسنت! فوز رائع 🎉</h2>
-    <p style="font-size: 1.15rem; margin: 10px 0;">لقد نجحت في تجميع كلمة: <span id="completed-word" class="word-glow">قلم</span></p>
+    <h2>🎉 نتائج اللعبة 🎉</h2>
+    <p style="font-size: 1.15rem; margin: 10px 0; color: #E5A7FF;">نجحت في إكمال جميع الكلمات!</p>
     
-    <div class="stats-row" style="display: flex; gap: 20px; justify-content: center; margin: 15px 0;">
-      <div class="stat-item" style="text-align: center;">
+    <div class="stats-row" style="display: flex; gap: 20px; justify-content: center; margin: 25px 0;">
+      <!-- Stars -->
+      <div class="stat-item" style="text-align: center; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
         <div style="font-size: 2rem;">⭐</div>
-        <div id="final-stars-val" style="font-weight: bold; font-size: 1.2rem;">0</div>
+        <div id="final-stars-val" style="font-weight: bold; font-size: 1.4rem; color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);">0</div>
+        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">النجوم</div>
       </div>
-      <div class="stat-item" style="text-align: center;">
-        <div style="font-size: 2rem;">🪙</div>
-        <div id="final-coins-val" style="font-weight: bold; font-size: 1.2rem;">0</div>
+      
+      <!-- Coins -->
+      <div class="stat-item" style="text-align: center; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+        <div style="display: flex; justify-content: center; align-items: center; height: 38px;">
+          <img src="/src/daddcoin.webp" alt="Coins" style="width: 32px; height: 32px; filter: drop-shadow(0 0 5px rgba(255,200,0,0.8));">
+        </div>
+        <div id="final-coins-val" style="font-weight: bold; font-size: 1.4rem; color: #FFA500; text-shadow: 0 0 10px rgba(255, 165, 0, 0.5);">0</div>
+        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">العملات</div>
       </div>
-      <div class="stat-item" style="text-align: center;">
+      
+      <!-- Experience -->
+      <div class="stat-item" style="text-align: center; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
         <div style="font-size: 2rem;">✨</div>
-        <div id="final-xp-val" style="font-weight: bold; font-size: 1.2rem;">0</div>
+        <div id="final-xp-val" style="font-weight: bold; font-size: 1.4rem; color: #00FFFF; text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);">0</div>
+        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">الخبرة</div>
       </div>
     </div>
 
-    <div class="final-score-panel">
-      <span class="label" style="color: rgba(255, 255, 255, 0.6); font-size: 0.85rem;">النقاط النهائية</span>
-      <span id="final-score-val" class="value text-glow" style="display: block; font-size: 2.4rem; margin-top: 5px;">0000</span>
+    <div class="final-score-panel" style="display: flex; justify-content: space-around; background: rgba(84, 57, 198, 0.3); border-radius: 16px; padding: 15px; border: 1px solid rgba(229, 167, 255, 0.2); margin-bottom: 20px;">
+      <div style="text-align: center;">
+        <span class="label" style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">النقاط</span>
+        <span id="final-score-val" class="value text-glow" style="display: block; font-size: 2rem; color: white;">0</span>
+      </div>
+      <div style="text-align: center;">
+        <span class="label" style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">النسبة</span>
+        <span id="final-percent-val" class="value text-glow" style="display: block; font-size: 2rem; color: #4CAF50;">0%</span>
+      </div>
     </div>
-    <div class="restart-hint">جاري تحميل الكلمة التالية...</div>
+    
+    <button id="retry-button" style="background: linear-gradient(135deg, #5439C6, #8A2BE2); color: white; border: none; padding: 12px 30px; font-size: 1.2rem; border-radius: 25px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: bold; box-shadow: 0 4px 15px rgba(84, 57, 198, 0.5); transition: transform 0.2s, box-shadow 0.2s;">
+      إعادة اللعب 🔄
+    </button>
   </div>
 
   <!-- Loading Overlay -->
