@@ -131,19 +131,20 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
     
     const press = (e) => { 
       e.preventDefault(); 
+      e.stopPropagation();
       controller.setTouchKeyState(key, true); 
     };
     const release = (e) => { 
       e.preventDefault(); 
+      e.stopPropagation();
       controller.setTouchKeyState(key, false); 
     };
     
-    btn.addEventListener('touchstart', press, { passive: false });
-    btn.addEventListener('touchend', release, { passive: false });
-    btn.addEventListener('touchcancel', release, { passive: false });
-    btn.addEventListener('mousedown', press);
-    btn.addEventListener('mouseup', release);
-    btn.addEventListener('mouseleave', release);
+    // Use pointer events to correctly stop propagation to the global window listener
+    btn.addEventListener('pointerdown', press, { passive: false });
+    btn.addEventListener('pointerup', release, { passive: false });
+    btn.addEventListener('pointercancel', release, { passive: false });
+    btn.addEventListener('pointerleave', release, { passive: false });
   };
 
   setupTouchBtn('btn-up', 'up');
