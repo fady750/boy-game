@@ -671,8 +671,9 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
               gameWon = true;
 
               if (gameAPI && sessionId) {
-                gameAPI.submitAnswers(sessionId, sessionAnswers)
-                  .then(() => gameAPI.completeSession(sessionId))
+                const currentSessionId = sessionId; // Capture to prevent it from being nullified by resetGame
+                gameAPI.submitAnswers(currentSessionId, sessionAnswers)
+                  .then(() => gameAPI.completeSession(currentSessionId))
                   .then(result => {
                     if (finalScoreValEl) finalScoreValEl.textContent = result.score || score;
                     if (finalStarsValEl) finalStarsValEl.textContent = result.stars || 0;
