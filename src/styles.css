@@ -193,13 +193,34 @@ canvas {
   flex-direction: column;
   align-items: center;
   width: 380px;
-  padding: 30px 40px;
+  max-width: 90%;
+  padding: 30px 20px;
   color: #ffffff;
   z-index: 100;
   transition: opacity 0.4s ease, transform 0.4s ease;
   text-align: center;
-  pointer-events: none;
+  pointer-events: auto; /* Changed to auto so the retry button is clickable */
   font-family: 'Cairo', sans-serif;
+  box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+  #win-overlay {
+    padding: 15px 10px;
+  }
+  #win-overlay h2 {
+    font-size: 1.6rem !important;
+  }
+  .stats-row {
+    gap: 10px !important;
+  }
+  .stat-item {
+    padding: 10px !important;
+  }
+  .final-score-panel {
+    flex-direction: column;
+    gap: 10px;
+  }
 }
 
 #win-overlay.hidden {
