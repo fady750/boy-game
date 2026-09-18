@@ -276,3 +276,113 @@ canvas {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* Mobile & Touch Controls */
+.hidden-desktop {
+  display: none !important;
+}
+
+.hidden-landscape {
+  display: none !important;
+}
+
+#portrait-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background: rgba(18, 22, 33, 0.95);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  color: white;
+  padding: 30px;
+}
+
+#mobile-controls {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  z-index: 50;
+  pointer-events: none; /* Let touches pass through the container itself */
+}
+
+.dpad-container, .action-container {
+  pointer-events: auto; /* Enable touches on the actual controls */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.dpad-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.ctrl-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.8rem;
+  font-weight: bold;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.ctrl-btn:active {
+  background: rgba(255, 255, 255, 0.35);
+  transform: scale(0.95);
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
+  border-color: rgba(0, 229, 255, 0.8);
+}
+
+.dpad-btn {
+  width: 60px;
+  height: 60px;
+}
+
+.action-btn {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 60, 60, 0.2);
+  border: 2px solid rgba(255, 60, 60, 0.5);
+}
+
+.action-btn:active {
+  background: rgba(255, 60, 60, 0.4);
+  box-shadow: 0 0 20px rgba(255, 60, 60, 0.6);
+  border-color: rgba(255, 60, 60, 0.9);
+}
+
+/* Media Queries for Orientation and Touch */
+@media (orientation: portrait) {
+  #portrait-overlay {
+    display: flex !important;
+  }
+}
+
+@media (pointer: coarse) and (max-width: 1024px) {
+  .hidden-desktop {
+    display: flex !important;
+  }
+}

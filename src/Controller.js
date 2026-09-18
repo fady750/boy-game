@@ -90,4 +90,13 @@ export class Controller {
     this.pointer.x = event.clientX;
     this.pointer.y = event.clientY;
   }
+
+  // Method to programmatically set key states from on-screen UI buttons
+  setTouchKeyState(key, isPressed) {
+    if (!this.keys[key]) return;
+    this.keys[key].pressed = isPressed;
+    if (key === 'shoot' && isPressed) {
+      this.lastShootType = 'keyboard'; // Treat UI button same as keyboard so it doesn't target pointer coords
+    }
+  }
 }

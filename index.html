@@ -103,6 +103,33 @@
     <p id="error-message">حدث خطأ أثناء تحميل اللعبة.</p>
   </div>
 
+  <!-- Portrait Orientation Warning Overlay -->
+  <div id="portrait-overlay" class="glass-panel hidden-landscape">
+    <div style="font-size: 3rem; margin-bottom: 20px;">🔄</div>
+    <h2>يرجى تدوير شاشة الهاتف للعب</h2>
+    <p style="font-size: 1.1rem; color: rgba(255,255,255,0.7);">اللعبة تتطلب الوضع العرضي</p>
+  </div>
+
+  <!-- Mobile On-Screen Controls -->
+  <div id="mobile-controls" class="hidden-desktop">
+    <div class="dpad-container">
+      <div class="dpad-row">
+        <button class="ctrl-btn dpad-btn" id="btn-up">↑</button>
+      </div>
+      <div class="dpad-row">
+        <button class="ctrl-btn dpad-btn" id="btn-left">←</button>
+        <button class="ctrl-btn dpad-btn" id="btn-down">↓</button>
+        <button class="ctrl-btn dpad-btn" id="btn-right">→</button>
+      </div>
+    </div>
+    
+    <div class="action-container">
+      <button class="ctrl-btn action-btn" id="btn-fire">
+        <span style="font-size: 1.5rem;">🔥</span>
+      </button>
+    </div>
+  </div>
+
   <script type="module" src="/src/index.js"></script>
 </body>
 </html>

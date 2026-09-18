@@ -124,6 +124,34 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
   // Create a controller that handles keyboard inputs.
   const controller = new Controller();
 
+  // Wire mobile on-screen controls
+  const setupTouchBtn = (id, key) => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    
+    const press = (e) => { 
+      e.preventDefault(); 
+      controller.setTouchKeyState(key, true); 
+    };
+    const release = (e) => { 
+      e.preventDefault(); 
+      controller.setTouchKeyState(key, false); 
+    };
+    
+    btn.addEventListener('touchstart', press, { passive: false });
+    btn.addEventListener('touchend', release, { passive: false });
+    btn.addEventListener('touchcancel', release, { passive: false });
+    btn.addEventListener('mousedown', press);
+    btn.addEventListener('mouseup', release);
+    btn.addEventListener('mouseleave', release);
+  };
+
+  setupTouchBtn('btn-up', 'up');
+  setupTouchBtn('btn-left', 'left');
+  setupTouchBtn('btn-right', 'right');
+  setupTouchBtn('btn-down', 'down');
+  setupTouchBtn('btn-fire', 'shoot');
+
   // Create a scene that holds the environment.
   const scene = new Scene(app.screen.width, app.screen.height);
 
