@@ -15,6 +15,9 @@ import bgImage from './BG.png';
 import { Bullet } from './Bullet';
 import { playShootSound, playPopSound, playVictorySound, playErrorSound } from './SoundEffects';
 import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import EndGameFlow from './EndGameFlow';
 
 // Asynchronous IIFE
 (async () => {
@@ -214,6 +217,7 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
   const SHOOT_COOLDOWN_MAX = 10;
   let gameStarted = false;
   let gameWon = false;
+  let totalMistakes = 0;
 
   // Word Spelling Challenge States (Arabic Words with their individual letters)
   const fallbackWords = [
@@ -308,6 +312,7 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
     comboTimer = 0;
     gameWon = false;
     gameStarted = false;
+    totalMistakes = 0;
     currentQuestionIndex = 0;
     sessionId = null; // Clear session ID so a new one is created on next start
     sessionAnswers = [];
@@ -644,6 +649,7 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
 
             // Reset combo
             combo = 0;
+            totalMistakes++;
             
             // Deduct 1 point (never below 0)
             score = Math.max(0, score - 1);
@@ -708,31 +714,47 @@ import { GameAPI, BOY_GAME_ID, wordToLetters } from './gameApi';
               // No more words, completely finish the game session
               gameWon = true;
 
+              const renderReactEndgame = (apiResult = {}) => {
+                const finalScore = apiResult.score || score;
+                const earnedCoins = apiResult.coins || score * 2;
+                
+                const reactRootEl = document.createElement('div');
+                reactRootEl.id = 'react-endgame-root';
+                reactRootEl.style.position = 'fixed';
+                reactRootEl.style.top = '0';
+                reactRootEl.style.left = '0';
+                reactRootEl.style.width = '100vw';
+                reactRootEl.style.height = '100vh';
+                reactRootEl.style.zIndex = '9999';
+                document.body.appendChild(reactRootEl);
+                
+                const root = createRoot(reactRootEl);
+                root.render(
+                  React.createElement(EndGameFlow, {
+                    score: finalScore,
+                    totalScore: 100,
+                    correctAnswers: wordsList.length,
+                    wrongAnswers: totalMistakes,
+                    coins: earnedCoins,
+                    onRetry: () => window.location.reload(),
+                    onBack: () => window.location.href = '/'
+                  })
+                );
+              };
+
               if (gameAPI && sessionId) {
                 const currentSessionId = sessionId; // Capture to prevent it from being nullified by resetGame
                 gameAPI.submitAnswers(currentSessionId, sessionAnswers)
                   .then(() => gameAPI.completeSession(currentSessionId))
                   .then(result => {
-                    if (finalScoreValEl) finalScoreValEl.textContent = result.score || score;
-                    if (finalPercentValEl) finalPercentValEl.textContent = (result.percentage || 0) + '%';
-                    if (finalStarsValEl) finalStarsValEl.textContent = result.stars || 0;
-                    if (finalCoinsValEl) finalCoinsValEl.textContent = result.coins || 0;
-                    if (finalXpValEl) finalXpValEl.textContent = result.experience || 0;
+                    renderReactEndgame(result);
                   })
                   .catch(err => {
                     console.error('Failed to complete session', err);
+                    renderReactEndgame();
                   });
-              }
-
-              if (winOverlayEl) {
-                winOverlayEl.classList.remove('hidden');
-              }
-              if (completedWordEl) {
-                completedWordEl.textContent = 'جميع الكلمات'; // "All words"
-              }
-              // Temporary score update while API fetches the final stats
-              if (finalScoreValEl) {
-                finalScoreValEl.textContent = String(score).padStart(4, '0');
+              } else {
+                renderReactEndgame();
               }
             }
             
