@@ -280,7 +280,7 @@ import EndGameFlow from './EndGameFlow';
   };
 
   const updateHUD = () => {
-    if (scoreValEl) scoreValEl.textContent = String(score).padStart(4, '0');
+    if (scoreValEl) scoreValEl.textContent = String(score);
     if (highscoreValEl) highscoreValEl.textContent = String(highscore).padStart(4, '0');
     if (comboValEl) comboValEl.textContent = `x${combo}`;
     if (comboPanelEl) {
@@ -368,6 +368,12 @@ import EndGameFlow from './EndGameFlow';
   initWordTarget();
   updateHUD();
 
+  // Initialize Rotate Screen Overlay state (let CSS handle orientation logic, just remove any default hidden classes if we want it to work)
+  const portraitOverlayEl = document.getElementById('portrait-overlay');
+  if (portraitOverlayEl) {
+    portraitOverlayEl.classList.remove('hidden');
+  }
+
   // Animate the scene and the character based on the controller's input.
   app.ticker.add(() => {
     // If the game is completed, freeze loop and check for restart prompts
@@ -403,10 +409,6 @@ import EndGameFlow from './EndGameFlow';
         }).catch(err => {
           // Silent catch
         });
-      }
-      
-      if (tutorialOverlayEl) {
-        tutorialOverlayEl.classList.add('hidden');
       }
     }
 
@@ -634,33 +636,18 @@ import EndGameFlow from './EndGameFlow';
             playPopSound();
             player.triggerHeadAnimation('correct');
 
-            // Increment combo score
-            combo++;
-            comboTimer = COMBO_WINDOW;
-            const earned = balloon.points * combo;
-            score += earned;
-            
-            scoreTextText = `+${earned} (${balloon.letter})`;
+            scoreTextText = balloon.letter;
             scoreTextColor = balloon.scoreColor;
           } else {
             // Mistake penalty!
             playErrorSound();
             player.triggerHeadAnimation('wrong');
 
-            // Reset combo
-            combo = 0;
             totalMistakes++;
             
-            // Deduct 1 point (never below 0)
-            score = Math.max(0, score - 1);
-            
-            scoreTextText = `-1 (${balloon.letter})`;
+            // Wrong answer gives 0 points
+            scoreTextText = `0`;
             scoreTextColor = "#ff3333"; // Red indicator
-          }
-
-          if (score > highscore) {
-            highscore = score;
-            localStorage.setItem('spineboy_highscore', highscore);
           }
 
           updateHUD();
@@ -691,6 +678,10 @@ import EndGameFlow from './EndGameFlow';
           if (allCollected) {
             playVictorySound();
             
+            // The word is complete, award 1 coin (score)
+            score += 1;
+            updateHUD();
+            
             // Clean up balloons and bullets from screen
             balloons.forEach(b => b.destroy());
             balloons.length = 0;
@@ -716,7 +707,7 @@ import EndGameFlow from './EndGameFlow';
 
               const renderReactEndgame = (apiResult = {}) => {
                 const finalScore = apiResult.score || score;
-                const earnedCoins = apiResult.coins || score * 2;
+                const earnedCoins = apiResult.coins || score; // Match coins to score since there's no combo
                 
                 const reactRootEl = document.createElement('div');
                 reactRootEl.id = 'react-endgame-root';
@@ -732,8 +723,8 @@ import EndGameFlow from './EndGameFlow';
                 root.render(
                   React.createElement(EndGameFlow, {
                     score: finalScore,
-                    totalScore: 100,
-                    correctAnswers: wordsList.length,
+                    totalScore: wordsList.length, // total correct possible is number of questions
+                    correctAnswers: score, // score is exactly number of correct answers
                     wrongAnswers: totalMistakes,
                     coins: earnedCoins,
                     onRetry: () => window.location.reload(),

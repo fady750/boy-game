@@ -2,8 +2,6 @@ import './ResultsPanel.css';
 import panelFrame from './assets/banal.png';
 import celebrationTitle from './assets/good.png';
 import coinsImage from './assets/money.png';
-import correctImage from './assets/right.png';
-import wrongImage from './assets/wrong.png';
 import buttonFrame from './assets/boutton.png';
 
 const numberValue = (value) => {
@@ -38,18 +36,10 @@ export default function ResultsPanel({
               <strong>{finalScore}/{maximumScore}</strong>
             </div>
             <div className="results-stats" aria-label="إحصاءات الأداء">
-              <div className="results-stat-card results-stat-card--correct">
-                <img src={correctImage} alt="إجابات صحيحة" />
-                <strong>{correct}</strong>
-              </div>
               <div className="results-stat-card results-stat-card--coins">
                 <img src={coinsImage} alt="عملات مكتسبة" />
                 <strong>+{earnedCoins}</strong>
                 <span>{'\u0641\u0650\u0644\u064f\u0648\u0633'}</span>
-              </div>
-              <div className="results-stat-card results-stat-card--wrong">
-                <img src={wrongImage} alt="إجابات خاطئة" />
-                <strong>{wrong}</strong>
               </div>
             </div>
           </div>

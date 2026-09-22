@@ -13,6 +13,7 @@
   overflow: hidden;
   background: radial-gradient(circle at 50% 45%, rgba(0, 196, 230, 0.2), transparent 43%), rgba(3, 16, 29, 0.5);
   backdrop-filter: blur(3px) saturate(1.1);
+  font-family: 'Cairo', sans-serif !important;
 }
 
 .results-overlay {
@@ -22,8 +23,8 @@
 }
 
 .results-panel {
-  width: min(90vw, 1180px, calc(75vh * 1.55));
-  max-width: 1180px;
+  width: min(83vw, 1080px, calc(69vh * 1.55));
+  max-width: 1080px;
   aspect-ratio: 1496 / 965;
   background: center / 100% 100% no-repeat var(--results-panel-image);
   filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.48));
@@ -95,15 +96,15 @@
 .results-stats {
   width: 100%;
   max-width: min(90%, 820px);
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
+  justify-content: center;
   gap: clamp(10px, 2vw, 32px);
   direction: ltr;
   animation: resultsItemIn 510ms 270ms ease-out both;
 }
 
 .results-stat-card {
-  width: min(100%, 240px);
+  width: min(100%, 280px);
   justify-self: center;
   min-height: 0;
   aspect-ratio: 1 / 1.05;

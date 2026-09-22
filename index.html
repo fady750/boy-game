@@ -6,90 +6,37 @@
   <!-- Import Google Fonts including Cairo for clean premium Arabic rendering -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800;900&family=Orbitron:wght@600;800&family=Outfit:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800;900&family=Orbitron:wght@600;800&family=Outfit:wght@400;500;700&family=Lateef:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="src/styles.css">
 </head>
 <body>
   <!-- HUD overlay container -->
   <div id="hud">
-    <div style="display: flex; gap: 15px; align-items: flex-start;">
-      <div class="hud-item glass-panel">
-        <span class="label">النقاط</span>
-        <span id="score-val" class="value text-glow">0000</span>
+    <div style="flex: 1; display: flex; gap: 15px; align-items: flex-start;">
+      <div id="score-panel" class="hud-item glass-panel" style="flex-direction: row; align-items: center; gap: 8px;">
+        <span id="score-val" class="value text-glow-yellow">0</span>
+        <img src="/src/daddcoin.webp" alt="Coins" class="hud-coin-icon" style="width: 26px; height: 26px;">
       </div>
       
-      <div id="combo-panel" class="hud-item glass-panel" style="opacity: 0; transform: scale(0.8); transition: all 0.2s ease;">
+      <div id="combo-panel" class="hud-item glass-panel" style="display: none;">
         <span class="label" style="color: #ffeb3b;">المضاعف</span>
         <span id="combo-val" class="value text-glow-yellow">x1</span>
       </div>
     </div>
 
     <!-- Center target word collection panel -->
-    <div id="word-target-container" class="hud-item glass-panel">
-      <span class="label">اجمع الحروف لتكوين</span>
-      <div id="word-slots"></div>
+    <div style="flex: 1; display: flex; justify-content: center;">
+      <div id="word-target-container" class="hud-item glass-panel">
+        <div id="word-slots"></div>
+      </div>
     </div>
 
-    <div class="hud-item glass-panel">
-      <span class="label">أفضل نتيجة</span>
-      <span id="highscore-val" class="value">0000</span>
-    </div>
+    <div style="flex: 1;"></div>
   </div>
 
-  <!-- Tutorial / Instructions popup in Arabic -->
-  <div id="tutorial-overlay" class="glass-panel">
-    <h2>فرقعة البالونات التعليمية</h2>
-    <p><span>تحرك يميناً ويساراً</span> <span class="key">A</span> / <span class="key">D</span> أو <span class="key">←</span> / <span class="key">→</span></p>
-    <p><span>القفز لأعلى</span> <span class="key">W</span> أو <span class="key">↑</span></p>
-    <p><span>إطلاق ليزر</span> <span class="key">SPACE</span> أو <span class="key">نقرة بالماوس</span></p>
-    <div class="start-hint">فجر بالوناً للبدء باللعب!</div>
-  </div>
+  <!-- Tutorial Removed per user request -->
 
-  <!-- Win Overlay (Final Results Modal) -->
-  <div id="win-overlay" class="glass-panel hidden">
-    <h2>🎉 نتائج اللعبة 🎉</h2>
-    <p style="font-size: 1.15rem; margin: 10px 0; color: #E5A7FF;">نجحت في إكمال جميع الكلمات!</p>
-    
-    <div class="stats-row" style="display: flex; gap: 20px; justify-content: center; margin: 25px 0;">
-      <!-- Stars -->
-      <div class="stat-item" style="text-align: center; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-        <div style="font-size: 2rem;">⭐</div>
-        <div id="final-stars-val" style="font-weight: bold; font-size: 1.4rem; color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);">0</div>
-        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">النجوم</div>
-      </div>
-      
-      <!-- Coins -->
-      <div class="stat-item" style="text-align: center; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-        <div style="display: flex; justify-content: center; align-items: center; height: 38px;">
-          <img src="/src/daddcoin.webp" alt="Coins" style="width: 32px; height: 32px; filter: drop-shadow(0 0 5px rgba(255,200,0,0.8));">
-        </div>
-        <div id="final-coins-val" style="font-weight: bold; font-size: 1.4rem; color: #FFA500; text-shadow: 0 0 10px rgba(255, 165, 0, 0.5);">0</div>
-        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">العملات</div>
-      </div>
-      
-      <!-- Experience -->
-      <div class="stat-item" style="text-align: center; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-        <div style="font-size: 2rem;">✨</div>
-        <div id="final-xp-val" style="font-weight: bold; font-size: 1.4rem; color: #00FFFF; text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);">0</div>
-        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">الخبرة</div>
-      </div>
-    </div>
-
-    <div class="final-score-panel" style="display: flex; justify-content: space-around; background: rgba(84, 57, 198, 0.3); border-radius: 16px; padding: 15px; border: 1px solid rgba(229, 167, 255, 0.2); margin-bottom: 20px;">
-      <div style="text-align: center;">
-        <span class="label" style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">النقاط</span>
-        <span id="final-score-val" class="value text-glow" style="display: block; font-size: 2rem; color: white;">0</span>
-      </div>
-      <div style="text-align: center;">
-        <span class="label" style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">النسبة</span>
-        <span id="final-percent-val" class="value text-glow" style="display: block; font-size: 2rem; color: #4CAF50;">0%</span>
-      </div>
-    </div>
-    
-    <button id="retry-button" style="background: linear-gradient(135deg, #5439C6, #8A2BE2); color: white; border: none; padding: 12px 30px; font-size: 1.2rem; border-radius: 25px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: bold; box-shadow: 0 4px 15px rgba(84, 57, 198, 0.5); transition: transform 0.2s, box-shadow 0.2s;">
-      إعادة اللعب 🔄
-    </button>
-  </div>
+  <!-- Win Overlay Removed (now handled by React component EndGameFlow) -->
 
   <!-- Loading Overlay -->
   <div id="loading-overlay" class="glass-panel">
@@ -104,28 +51,40 @@
   </div>
 
   <!-- Portrait Orientation Warning Overlay -->
-  <div id="portrait-overlay" class="glass-panel hidden-landscape">
-    <div style="font-size: 3rem; margin-bottom: 20px;">🔄</div>
-    <h2>يرجى تدوير شاشة الهاتف للعب</h2>
-    <p style="font-size: 1.1rem; color: rgba(255,255,255,0.7);">اللعبة تتطلب الوضع العرضي</p>
+  <div id="portrait-overlay" class="rotate-screen-overlay hidden">
+    <div class="rotate-icon-container">
+      <svg class="phone-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+        <line x1="12" y1="18" x2="12.01" y2="18"></line>
+      </svg>
+    </div>
+    <p>قم بتدوير الهاتف بالعرض</p>
   </div>
 
   <!-- Mobile On-Screen Controls -->
   <div id="mobile-controls" class="hidden-desktop">
     <div class="dpad-container">
       <div class="dpad-row">
-        <button class="ctrl-btn dpad-btn" id="btn-up">↑</button>
+        <button class="ctrl-btn dpad-btn" id="btn-up">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        </button>
       </div>
       <div class="dpad-row">
-        <button class="ctrl-btn dpad-btn" id="btn-left">←</button>
-        <button class="ctrl-btn dpad-btn" id="btn-down">↓</button>
-        <button class="ctrl-btn dpad-btn" id="btn-right">→</button>
+        <button class="ctrl-btn dpad-btn" id="btn-left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <button class="ctrl-btn dpad-btn" id="btn-down">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+        </button>
+        <button class="ctrl-btn dpad-btn" id="btn-right">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
       </div>
     </div>
     
     <div class="action-container">
       <button class="ctrl-btn action-btn" id="btn-fire">
-        <span style="font-size: 1.5rem;">🔥</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
       </button>
     </div>
   </div>
