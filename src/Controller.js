@@ -22,6 +22,7 @@ export class Controller {
       down: { pressed: false, doubleTap: false, timestamp: 0 },
       right: { pressed: false, doubleTap: false, timestamp: 0 },
       shoot: { pressed: false, doubleTap: false, timestamp: 0 },
+      run: { pressed: false, doubleTap: false, timestamp: 0 },
     };
 
     // Store pointer coordinate position

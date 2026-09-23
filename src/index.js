@@ -155,6 +155,8 @@ import EndGameFlow from './EndGameFlow';
   setupTouchBtn('btn-right', 'right');
   setupTouchBtn('btn-down', 'down');
   setupTouchBtn('btn-fire', 'shoot');
+  setupTouchBtn('btn-run', 'run');
+  setupTouchBtn('btn-jump-right', 'up');
 
   // Create a scene that holds the environment.
   const scene = new Scene(app.screen.width, app.screen.height);
@@ -415,7 +417,7 @@ import EndGameFlow from './EndGameFlow';
     // Update character's state based on the controller's input.
     player.state.walk = controller.keys.left.pressed || controller.keys.right.pressed;
     if (player.state.run && player.state.walk) player.state.run = true;
-    else player.state.run = controller.keys.left.doubleTap || controller.keys.right.doubleTap;
+    else player.state.run = controller.keys.run.pressed || controller.keys.left.doubleTap || controller.keys.right.doubleTap;
     player.state.hover = controller.keys.down.pressed;
     // Keyboard direction owns the symmetric A/D movement and facing.
     if (controller.keys.left.pressed && !controller.keys.right.pressed) player.direction = -1;
