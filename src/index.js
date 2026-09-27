@@ -50,6 +50,7 @@ import WelcomeScreen from './WelcomeScreen/WelcomeScreen';
   let targetWordId = null;
   let targetLetters = [];
   let collectedLetters = [];
+  let isTransitioning = false;
   let sessionAnswers = [];
 
   const loadingOverlayEl = document.getElementById('loading-overlay');
@@ -335,6 +336,19 @@ import WelcomeScreen from './WelcomeScreen/WelcomeScreen';
       }
     }
 
+    // Update question counter and progress bar
+    const questionCounterEl = document.getElementById('question-counter');
+    const progressFillEl = document.getElementById('header-progress-fill');
+    if (questionCounterEl && wordsList) {
+      const current = Math.min(currentQuestionIndex + 1, wordsList.length);
+      questionCounterEl.textContent = `${current}/${wordsList.length}`;
+    }
+    if (progressFillEl && wordsList) {
+      const current = Math.min(currentQuestionIndex, wordsList.length);
+      const percentage = wordsList.length > 0 ? (current / wordsList.length) * 100 : 0;
+      progressFillEl.style.width = `${percentage}%`;
+    }
+
     // Update letter slot classes
     for (let i = 0; i < targetLetters.length; i++) {
       const slot = document.getElementById(`slot-${i}`);
@@ -417,7 +431,7 @@ import WelcomeScreen from './WelcomeScreen/WelcomeScreen';
   app.ticker.add(() => {
     // If the game is completed, completely freeze the loop.
     // Restarts are now exclusively handled by the React EndGame modal.
-    if (gameWon) {
+    if (gameWon || isTransitioning) {
       return;
     }
 
@@ -735,16 +749,32 @@ import WelcomeScreen from './WelcomeScreen/WelcomeScreen';
               selectedAnswer: targetWord
             });
 
-            // Move to next question
-            currentQuestionIndex++;
-            const hasMore = initWordTarget();
+            // Pause the game loop
+            isTransitioning = true;
             
-            if (hasMore) {
-              // Update HUD for next word and continue playing
-              updateHUD();
-            } else {
-              // No more words, completely finish the game session
-              gameWon = true;
+            // Show the success modal
+            const successModal = document.getElementById('success-modal');
+            if (successModal) {
+              successModal.classList.remove('hidden');
+            }
+
+            // Wait 1.5 seconds, then proceed to the next word
+            setTimeout(() => {
+              if (successModal) {
+                successModal.classList.add('hidden');
+              }
+              
+              // Move to next question
+              currentQuestionIndex++;
+              const hasMore = initWordTarget();
+              
+              if (hasMore) {
+                // Update HUD for next word and continue playing
+                updateHUD();
+                isTransitioning = false;
+              } else {
+                // No more words, completely finish the game session
+                gameWon = true;
 
               const renderReactEndgame = (apiResult = {}) => {
                 const finalScore = apiResult.score || score;
@@ -788,7 +818,8 @@ import WelcomeScreen from './WelcomeScreen/WelcomeScreen';
               } else {
                 renderReactEndgame();
               }
-            }
+            } // Close the 'else' block for !hasMore
+            }, 1500); // Close setTimeout
             
             return; // Exit the ticker loop immediately since all objects are destroyed
           }

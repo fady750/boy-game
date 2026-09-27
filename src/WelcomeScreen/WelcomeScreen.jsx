@@ -7,6 +7,7 @@ import questionNumberImg from '../assets/QuestionNumber.png';
 import descriptionImg from '../assets/description.png';
 import startButtonImg from '../assets/startButton.png';
 import daddcoinImg from '../assets/daddcoin.webp';
+import exitButtonImg from '../assets/ExitButton.svg';
 
 export default function WelcomeScreen({ 
   questionsCount, 
@@ -19,16 +20,28 @@ export default function WelcomeScreen({
   return (
     <div className="welcome-screen-new">
       
-      {/* HEADER: Stats Badge */}
+      {/* HEADER: Stats Badge and Exit Button */}
       <header className="welcome-header-new">
+        <button 
+          className="welcome-exit-btn" 
+          onClick={() => {
+            if (window.history.length > 1) {
+              window.history.back();
+            } else {
+              window.location.href = '/';
+            }
+          }}
+        >
+          <img src={exitButtonImg} alt="Exit" />
+        </button>
         <div 
           className="welcome-stats-bg" 
           style={{ backgroundImage: `url(${questionNumberImg})` }}
         >
           <img src={questionCoinImg} alt="Questions" className="welcome-q-coin" />
           <span className="welcome-stat-text">{questionsCount}</span>
-          <span className="welcome-stat-text">&gt;</span>
-          <span className="welcome-stat-text welcome-stat-text--yellow">+{daddPoints}</span>
+          <span className="welcome-stat-text">=</span>
+          <span className="welcome-stat-text welcome-stat-text--yellow">{daddPoints}</span>
           <img src={daddcoinImg} alt="Dadd Points" className="welcome-dadd-coin" />
         </div>
       </header>

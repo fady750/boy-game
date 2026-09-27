@@ -1,64 +1,67 @@
-import './ResultsPanel.css';
-import panelFrame from './assets/banal.png';
-import celebrationTitle from './assets/good.png';
-import coinsImage from './assets/money.png';
-import buttonFrame from './assets/boutton.png';
+import React from "react";
+import "./ResultsPanel.css";
 
-const numberValue = (value) => {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? Math.max(0, Math.round(parsed)) : 0;
-};
+import banalImg from "./assets/banal.png";
+import goodImg from "./assets/good.png";
+import moneyImg from "./assets/money.png";
+import rightImg from "./assets/right.png";
+import bouttonImg from "./assets/boutton.png";
 
-/** A portable end-results panel; all game-specific values arrive as props. */
-export default function ResultsPanel({
-  score,
-  totalScore = 100,
-  correctAnswers,
-  wrongAnswers,
-  coins,
-  onRetry,
-  onBack,
-}) {
-  const finalScore = numberValue(score);
-  const maximumScore = numberValue(totalScore) || 100;
-  const correct = numberValue(correctAnswers);
-  const wrong = numberValue(wrongAnswers);
-  const earnedCoins = numberValue(coins);
+import retryImg from "../assets/retry.png";
+import exitBtnImg from "../assets/ExitButton.svg";
+
+const ResultsPanel = ({
+  score = 0,
+  totalScore = 0,
+  correctAnswers = 0,
+  wrongAnswers = 0,
+  coins = 0,
+  onRetry
+}) => {
+  const handleBack = () => {
+    window.history.back();
+  };
+
+  const isSuccess = score >= totalScore / 2;
 
   return (
     <div className="results-overlay">
-      <section className="results-screen" aria-label="نتائج اللعبة" dir="rtl">
-        <div className="results-panel" style={{ '--results-panel-image': `url(${panelFrame})` }}>
+      <div className="results-screen" dir="rtl">
+        <div className="results-panel">
           <div className="results-panel__content">
-            <img className="results-panel__title" src={celebrationTitle} alt="أحسنت" />
-            <div className="results-score-card">
-              <span className="results-score-card__label">{'\u0627\u0644\u062f\u0651\u064e\u0631\u064e\u062c\u064e\u0629\u064f'}</span>
-              <strong>{finalScore}/{maximumScore}</strong>
-            </div>
-            <div className="results-stats" aria-label="إحصاءات الأداء">
-              <div className="results-stat-card results-stat-card--coins">
-                <img src={coinsImage} alt="عملات مكتسبة" />
-                <strong>+{earnedCoins}</strong>
-                <span>{'\u0641\u0650\u0644\u064f\u0648\u0633'}</span>
+            <h1 className="results-title">{isSuccess ? "أحسنت!" : "حاول مرة أخرى!"}</h1>
+
+
+            <div className="results-stats">
+              <div className="results-stat-card">
+                <img src={rightImg} alt="صحيح" className="stat-icon" />
+                <span className="stat-value">{correctAnswers}</span>
+                <span className="stat-label">صحيح</span>
+              </div>
+
+              <div className="results-stat-card">
+                <img src={moneyImg} alt="فلوس" className="stat-icon" />
+                <span className="stat-value" style={{ direction: "ltr" }}>+{coins}</span>
+                <span className="stat-label">فُلُوس</span>
               </div>
             </div>
           </div>
         </div>
+
         <div className="results-actions">
-          <button className="results-action results-action--back" type="button" onClick={onBack}>
-            <img src={buttonFrame} alt="" aria-hidden="true" />
-            <span className="results-action__group">
-              <span>{'\u0627\u0631\u0652\u062c\u0650\u0639\u0652'}</span>
-              <span className="results-action__exit-icon" aria-hidden="true">⎋</span>
-            </span>
+          <button className="results-action btn-red" onClick={handleBack}>
+            <span>ارْجِعْ</span>
+            <img src={exitBtnImg} alt="Exit" className="btn-icon-img" />
           </button>
-          <button className="results-action results-action--retry" type="button" onClick={onRetry}>
-            <img src={buttonFrame} alt="" aria-hidden="true" />
-            <span aria-hidden="true">↻</span>
-            <span>{'\u062b\u0627\u0646\u0650\u064a\u064e\u0629\u064b'}</span>
+
+          <button className="results-action btn-blue" onClick={onRetry}>
+            <span>ثانِيَةً</span>
+            <img src={retryImg} alt="Retry" className="btn-icon-img" />
           </button>
         </div>
-      </section>
+      </div>
     </div>
   );
-}
+};
+
+export default ResultsPanel;

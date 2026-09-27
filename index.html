@@ -11,34 +11,53 @@
   <link rel="stylesheet" href="src/styles.css">
 </head>
 <body>
-  <!-- HUD overlay container -->
-  <div id="hud">
-    <div style="flex: 1; display: flex; gap: 15px; align-items: flex-start;">
-      <div id="score-panel" class="hud-item glass-panel" style="flex-direction: row; align-items: center; gap: 8px;">
-        <span id="score-val" class="value text-glow-yellow">0</span>
-        <img src="/src/assets/daddcoin.webp" alt="Coins" class="hud-coin-icon" style="width: 26px; height: 26px;">
+  <!-- Game UI Header and HUD -->
+  <div id="hud-container">
+    <div id="game-header-new">
+      <div class="game-header-content">
+        <!-- Left: Coins (RTL visual right, but we align properly) -->
+        <div id="score-panel" class="header-coin-badge">
+          <img src="/src/assets/daddcoin.webp" alt="Coins" class="hud-coin-icon">
+          <span id="score-val">0</span>
+        </div>
+        
+        <!-- Center: Question Info -->
+        <div class="header-question-info">
+          <div class="header-question-label">السؤال</div>
+          <div class="header-question-numbers" id="question-counter">1/5</div>
+        </div>
+
+        <!-- Center: Word Slots in Header Row -->
+        <div class="header-word-slots-container">
+          <div id="word-target-container">
+            <div id="word-slots"></div>
+          </div>
+        </div>
+
+        <!-- Right: Exit Button -->
+        <button class="header-exit-btn" onclick="window.history.length > 1 ? window.history.back() : window.location.href = '/'">
+          <img src="/src/assets/ExitButton.svg" alt="Exit">
+        </button>
       </div>
       
-      <div id="combo-panel" class="hud-item glass-panel" style="display: none;">
-        <span class="label" style="color: #ffeb3b;">المضاعف</span>
-        <span id="combo-val" class="value text-glow-yellow">x1</span>
+      <!-- Progress Bar -->
+      <div class="header-progress-track">
+        <div id="header-progress-fill" class="header-progress-fill"></div>
       </div>
     </div>
-
-    <!-- Center target word collection panel -->
-    <div style="flex: 1; display: flex; justify-content: center;">
-      <div id="word-target-container" class="hud-item glass-panel">
-        <div id="word-slots"></div>
-      </div>
-    </div>
-
-    <div style="flex: 1;"></div>
   </div>
 
   <!-- Tutorial Removed per user request -->
 
   <!-- Win Overlay Removed (now handled by React component EndGameFlow) -->
 
+
+  <!-- Success Modal -->
+  <div id="success-modal" class="hidden">
+    <div class="success-content">
+      <span class="success-check">✔</span> أحسنت!
+    </div>
+  </div>
 
   <!-- Error Overlay -->
   <div id="error-overlay" class="glass-panel hidden">
