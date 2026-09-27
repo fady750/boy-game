@@ -538,7 +538,7 @@ canvas {
   }
 }
 
-@media (pointer: coarse) and (max-width: 1024px) {
+@media (pointer: coarse) {
   .hidden-desktop {
     display: flex !important;
   }

@@ -29,7 +29,7 @@ const ResultsPanel = ({
       <div className="results-screen" dir="rtl">
         <div className="results-panel">
           <div className="results-panel__content">
-            <h1 className="results-title">{isSuccess ? "أحسنت!" : "حاول مرة أخرى!"}</h1>
+            <img src={isSuccess ? goodImg : banalImg} alt={isSuccess ? "أحسنت!" : "حاول مرة أخرى!"} className="results-title-img" />
 
 
             <div className="results-stats">

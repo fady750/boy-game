@@ -50,15 +50,12 @@
 /* ==================
    2. Dynamic Titles (Success / Fail)
    ================== */
-.results-title {
-  font-size: clamp(2.5rem, 6vw, 4.5rem);
-  margin-top: 0;
-  margin-bottom: 0;
-  line-height: 1;
-  color: #fff;
-  text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
-  font-family: 'Cairo', sans-serif;
-  text-align: center;
+.results-title-img {
+  height: clamp(60px, 15vh, 120px);
+  max-width: 90%;
+  object-fit: contain;
+  margin: 0 auto;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
 }
 
 /* Existing score card logic adapted for clamp */
