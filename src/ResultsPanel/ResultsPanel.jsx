@@ -1,14 +1,13 @@
-import React from "react";
-import "./ResultsPanel.css";
+import React from 'react';
+import './ResultsPanel.css';
 
-import banalImg from "./assets/banal.png";
-import goodImg from "./assets/good.png";
-import moneyImg from "./assets/money.png";
-import rightImg from "./assets/right.png";
-import bouttonImg from "./assets/boutton.png";
-
-import retryImg from "../assets/retry.png";
-import exitBtnImg from "../assets/ExitButton.svg";
+import banalImg from './assets/banal.png';
+import goodImg from './assets/good.png';
+import moneyImg from './assets/money.png';
+import rightImg from './assets/right.png';
+import wrongImg from './assets/wrong.png';
+import exitImg from './assets/exit.png';
+import retryImg from './assets/retry.png';
 
 const ResultsPanel = ({
   score = 0,
@@ -16,50 +15,89 @@ const ResultsPanel = ({
   correctAnswers = 0,
   wrongAnswers = 0,
   coins = 0,
-  onRetry
+  onRetry,
+  onBack,
 }) => {
   const handleBack = () => {
-    window.history.back();
+    if (onBack) {
+      onBack();
+    } else {
+      window.history.back();
+    }
   };
 
-  const isSuccess = score >= totalScore / 2;
+  const handleRetry = () => {
+    if (onRetry) {
+      onRetry();
+    } else {
+      window.location.reload();
+    }
+  };
+
+  // Displays good.png when score >= 50%, or Arabic red text when score < 50%
+  const isSuccess =
+    totalScore > 0 ? correctAnswers / totalScore >= 0.5 : correctAnswers >= wrongAnswers;
 
   return (
     <div className="results-overlay">
-      <div className="results-screen" dir="rtl">
-        <div className="results-panel">
+      <section className="results-screen" aria-label="نتائج اللعبة">
+        {/* Sci-Fi Frame Container */}
+        <div
+          className="results-panel"
+          style={{ '--results-panel-image': `url(${banalImg})` }}
+        >
           <div className="results-panel__content">
-            <img src={isSuccess ? goodImg : banalImg} alt={isSuccess ? "أحسنت!" : "حاول مرة أخرى!"} className="results-title-img" />
+            {/* Zone 1: Success Image OR Red Fail Text */}
+            {isSuccess ? (
+              <img className="results-panel__title" src={goodImg} alt="أحسنت" />
+            ) : (
+              <div className="results-panel__fail-title">حاول مرة أخرى!</div>
+            )}
 
-
+            {/* Zone 2: 3 Stat Cards (LTR) */}
             <div className="results-stats">
-              <div className="results-stat-card">
-                <img src={rightImg} alt="صحيح" className="stat-icon" />
-                <span className="stat-value">{correctAnswers}</span>
-                <span className="stat-label">صحيح</span>
+              {/* 1. Correct Answers */}
+              <div className="results-stat-card results-stat-card--correct">
+                <img src={rightImg} alt="إجابات صحيحة" />
+                <strong>{correctAnswers}</strong>
               </div>
 
-              <div className="results-stat-card">
-                <img src={moneyImg} alt="فلوس" className="stat-icon" />
-                <span className="stat-value" style={{ direction: "ltr" }}>+{coins}</span>
-                <span className="stat-label">فُلُوس</span>
+              {/* 2. Earned Coins */}
+              <div className="results-stat-card results-stat-card--coins">
+                <img src={moneyImg} alt="عملات مكتسبة" />
+                <strong>+{coins}</strong>
+                <span>فِلُوس</span>
+              </div>
+
+              {/* 3. Wrong Answers */}
+              <div className="results-stat-card results-stat-card--wrong">
+                <img src={wrongImg} alt="إجابات خاطئة" />
+                <strong>{wrongAnswers}</strong>
               </div>
             </div>
           </div>
         </div>
 
+        {/* Zone 3: Bottom Action Buttons (RTL: Exit Right, Retry Left) */}
         <div className="results-actions">
-          <button className="results-action btn-red" onClick={handleBack}>
-            <span>ارْجِعْ</span>
-            <img src={exitBtnImg} alt="Exit" className="btn-icon-img" />
+          <button
+            type="button"
+            className="results-action results-action--back"
+            aria-label="خروج"
+            onClick={handleBack}
+          >
+            <img src={exitImg} className="results-action__bg" alt="خروج" />
           </button>
-
-          <button className="results-action btn-blue" onClick={onRetry}>
-            <span>ثانِيَةً</span>
-            <img src={retryImg} alt="Retry" className="btn-icon-img" />
+          <button
+            type="button"
+            className="results-action results-action--retry"
+            aria-label="إعادة المحاولة"
+            onClick={handleRetry}
+          >
+            <img src={retryImg} className="results-action__bg" alt="إعادة المحاولة" />
           </button>
         </div>
-      </div>
+      </section>
     </div>
   );
 };
