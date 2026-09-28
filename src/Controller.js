@@ -73,6 +73,10 @@ export class Controller {
   }
 
   pointerdownHandler(event) {
+    // Ignore pointer clicks that land on the welcome screen overlay
+    const welcomeRoot = document.getElementById('react-welcome-root');
+    if (welcomeRoot && welcomeRoot.contains(event.target)) return;
+
     if (event.button === 0) {
       this.keys.shoot.pressed = true;
       this.lastShootType = 'pointer';
