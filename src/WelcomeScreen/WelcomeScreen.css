@@ -27,30 +27,7 @@
   height: 60px;
 }
 
-.welcome-exit-btn {
-  position: absolute;
-  top: 0;
-  right: 0;
-  background: transparent;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  transition: transform 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-}
 
-.welcome-exit-btn img {
-  width: clamp(28px, 6vw, 45px);
-  height: clamp(28px, 6vw, 45px);
-  object-fit: contain;
-}
-
-.welcome-exit-btn:hover {
-  transform: scale(1.1);
-}
 
 .welcome-stats-bg {
   position: absolute;
@@ -100,15 +77,52 @@
 }
 
 .welcome-description-img {
-  width: 90%;
+  width: 95%;
   height: auto;
-  max-width: clamp(280px, 80vw, 800px);
-  max-height: clamp(150px, 45vh, 400px);
+  max-width: clamp(350px, 90vw, 1000px);
+  max-height: clamp(250px, 60vh, 550px);
   object-fit: contain;
+  filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.4));
+  transform: translateY(-5px);
+  transition: transform 0.4s ease, filter 0.4s ease;
+}
+
+.welcome-description-img:hover {
+  transform: scale(1.02) translateY(-8px);
+  filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.6));
 }
 
 .welcome-footer-new {
   margin-bottom: 8vh;
+}
+
+.welcome-footer-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(15px, 4vw, 30px); /* responsive distance between them */
+  flex-wrap: wrap;
+}
+
+.welcome-footer-exit-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.welcome-footer-exit-btn img {
+  width: clamp(150px, 25vw, 225px);
+  height: clamp(50px, 8vw, 75px);
+  object-fit: fill;
+}
+
+.welcome-footer-exit-btn:hover:not(:disabled) {
+  transform: scale(1.1);
 }
 
 .welcome-start-btn-new {
@@ -117,8 +131,8 @@
   background-repeat: no-repeat;
   background-color: transparent;
   border: none;
-  width: 200px;
-  height: 65px;
+  width: clamp(150px, 25vw, 225px); /* Keeps proportions with height */
+  height: clamp(50px, 8vw, 75px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -138,9 +152,7 @@
 }
 
 .welcome-start-btn-new:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  filter: grayscale(100%);
+  cursor: progress;
 }
 
 /* ========================================= */
@@ -151,8 +163,8 @@
 @media (pointer: coarse),
 (max-width: 950px) {
   .welcome-description-img {
-    max-width: 400px;
-    max-height: 50vh;
+    max-width: 600px;
+    max-height: 60vh;
   }
 }
 
@@ -184,14 +196,19 @@
   }
 
   .welcome-start-btn-new {
-    width: 140px;
-    height: 45px;
+    width: clamp(140px, 25vw, 160px);
+    height: clamp(45px, 8vw, 55px);
     font-size: 16px;
     padding-bottom: 2px;
   }
 
+  .welcome-footer-exit-btn img {
+    width: clamp(140px, 25vw, 160px);
+    height: clamp(45px, 8vw, 55px);
+  }
+
   .welcome-description-img {
-    max-width: 250px;
-    max-height: 40vh;
+    max-width: 350px;
+    max-height: 60vh;
   }
 }
