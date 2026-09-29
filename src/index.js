@@ -125,7 +125,10 @@ import WelcomeScreen from './WelcomeScreen/WelcomeScreen';
         return {
           word: q.question,
           letters: letters,
-          id: q.id
+          id: q.id,
+          questionText: q.question || null,
+          imageUrl: q.imageUrl || q.options.find(opt => typeof opt !== 'string' && opt?.imageUrl)?.imageUrl || null,
+          audioUrl: q.audioUrl || q.options.find(opt => typeof opt !== 'string' && opt?.audioUrl)?.audioUrl || null
         };
       });
       
@@ -289,6 +292,10 @@ import WelcomeScreen from './WelcomeScreen/WelcomeScreen';
   const finalXpValEl = document.getElementById('final-xp-val');
   const finalPercentValEl = document.getElementById('final-percent-val');
   const retryBtn = document.getElementById('retry-button');
+  const imageModal = document.getElementById('question-image-modal');
+  const imageModalClose = document.getElementById('question-image-modal-close');
+  imageModalClose?.addEventListener('click', () => imageModal?.classList.add('hidden'));
+  imageModal?.addEventListener('click', (event) => { if (event.target === imageModal) imageModal.classList.add('hidden'); });
 
   if (retryBtn) {
     retryBtn.addEventListener('click', () => {
@@ -303,6 +310,24 @@ import WelcomeScreen from './WelcomeScreen/WelcomeScreen';
       return false; // No more questions
     }
     const wordObj = wordsList[currentQuestionIndex];
+    const mediaPanel = document.getElementById('question-media-panel');
+    const mediaText = document.getElementById('question-media-text');
+    const mediaImage = document.getElementById('question-media-image');
+    const mediaAudio = document.getElementById('question-media-audio');
+    if (mediaPanel && mediaText && mediaImage && mediaAudio) {
+      mediaText.textContent = wordObj.questionText || '';
+      mediaImage.src = wordObj.imageUrl || '';
+      mediaImage.classList.toggle('hidden', !wordObj.imageUrl);
+      mediaAudio.classList.toggle('hidden', !wordObj.audioUrl);
+      mediaPanel.classList.toggle('hidden', !wordObj.questionText && !wordObj.imageUrl && !wordObj.audioUrl);
+      mediaAudio.onclick = () => { if (wordObj.audioUrl) new Audio(wordObj.audioUrl).play().catch(() => {}); };
+      mediaImage.onclick = () => {
+        if (!wordObj.imageUrl) return;
+        const modal = document.getElementById('question-image-modal');
+        const modalImage = document.getElementById('question-image-modal-img');
+        if (modal && modalImage) { modalImage.src = wordObj.imageUrl; modal.classList.remove('hidden'); }
+      };
+    }
     targetWord = wordObj.word;
     targetWordId = wordObj.id;
     targetLetters = wordObj.letters;

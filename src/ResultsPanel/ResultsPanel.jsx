@@ -46,6 +46,7 @@ const ResultsPanel = ({
           className="results-panel"
           style={{ '--results-panel-image': `url(${banalImg})` }}
         >
+          <img className="results-panel__frame" src={banalImg} alt="" aria-hidden="true" />
           <div className="results-panel__content">
             {/* Zone 1: Success Image OR Red Fail Text */}
             {isSuccess ? (
