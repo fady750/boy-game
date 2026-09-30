@@ -87,7 +87,7 @@ canvas {
 }
 
 .header-question-label {
-  font-family: 'Cairo', sans-serif;
+  font-family: 'Lateef', sans-serif;
   font-size: clamp(0.85rem, 2vw, 1.2rem);
   font-weight: 800;
   line-height: 1.1;
@@ -594,8 +594,8 @@ canvas {
   border-radius: 24px;
   background: linear-gradient(180deg, rgba(8, 48, 70, .96), rgba(5, 30, 48, .94));
   box-shadow: 0 16px 40px rgba(0, 0, 0, .45), inset 0 0 18px rgba(0, 196, 230, .16);
-  font-family: 'Cairo', sans-serif;
-  font-size: clamp(1.65rem, min(4.8vw, 5.5vh), 3rem);
+  font-family: 'Lateef', sans-serif;
+  font-size: clamp(2.1rem, min(6vw, 6.4vh), 3.8rem);
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
@@ -631,7 +631,7 @@ canvas {
 }
 #question-media-panel { position:fixed; top:clamp(86px,12vh,130px); left:50%; transform:translateX(-50%); z-index:20; width:min(92vw,560px); display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; padding:10px 14px; border-radius:18px; background:rgba(8,30,50,.88); border:2px solid rgba(0,196,230,.55); box-shadow:0 10px 25px rgba(0,0,0,.28); pointer-events:auto; }
 #question-media-panel.hidden, #question-image-modal.hidden { display:none; }
-.question-media-text { color:#fff; font:900 clamp(1.05rem,3vw,1.8rem)/1.2 Cairo,sans-serif; text-align:center; }
+.question-media-text { color:#fff; font:900 clamp(1.05rem,3vw,1.8rem)/1.2 Lateef,sans-serif; text-align:center; }
 .question-media-image { width:clamp(70px,13vw,120px); height:clamp(70px,13vw,120px); object-fit:contain; border-radius:12px; cursor:zoom-in; background:rgba(255,255,255,.12); }
 .question-media-audio { width:40px; height:40px; display:grid; place-items:center; border:0; border-radius:50%; color:#fff; background:#0ea5e9; cursor:pointer; }
 .question-media-audio svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }

@@ -763,7 +763,7 @@ import WelcomeScreen from './WelcomeScreen/WelcomeScreen';
 
           // Spawn floating score/error display text
           const scoreStyle = new TextStyle({
-            fontFamily: 'Cairo',
+            fontFamily: 'Lateef',
             fontSize: 20,
             fontWeight: 'bold',
             fill: scoreTextColor,
