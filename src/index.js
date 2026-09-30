@@ -56,6 +56,28 @@ import WelcomeScreen from './WelcomeScreen/WelcomeScreen';
   const loadingOverlayEl = document.getElementById('loading-overlay');
   const errorOverlayEl = document.getElementById('error-overlay');
   const errorMessageEl = document.getElementById('error-message');
+  const answerFeedbackEl = document.getElementById('answer-feedback');
+  let answerFeedbackTimer = null;
+
+  const showAnswerFeedback = (isCorrect, duration = 750) => {
+    if (!answerFeedbackEl) return;
+    const card = answerFeedbackEl.querySelector('.answer-feedback-card');
+    const icon = answerFeedbackEl.querySelector('.answer-feedback__icon');
+    const text = answerFeedbackEl.querySelector('.answer-feedback__text');
+    if (!card || !icon || !text) return;
+
+    window.clearTimeout(answerFeedbackTimer);
+    card.classList.toggle('answer-feedback-card--success', isCorrect);
+    card.classList.toggle('answer-feedback-card--wrong', !isCorrect);
+    icon.innerHTML = isCorrect
+      ? '<path d="m5 12 4 4L19 6"/><circle cx="12" cy="12" r="10"/>'
+      : '<path d="m15 9-6 6m0-6 6 6"/><circle cx="12" cy="12" r="10"/>';
+    text.textContent = isCorrect ? 'أحسنت' : 'خطأ';
+    answerFeedbackEl.classList.remove('hidden');
+    if (duration > 0) {
+      answerFeedbackTimer = window.setTimeout(() => answerFeedbackEl.classList.add('hidden'), duration);
+    }
+  };
 
   const showError = (msg) => {
     if (loadingOverlayEl) loadingOverlayEl.classList.add('hidden');
@@ -728,6 +750,7 @@ import WelcomeScreen from './WelcomeScreen/WelcomeScreen';
             // Wrong answer gives 0 points
             scoreTextText = `0`;
             scoreTextColor = "#ff3333"; // Red indicator
+            showAnswerFeedback(false);
           }
 
           updateHUD();
@@ -778,16 +801,11 @@ import WelcomeScreen from './WelcomeScreen/WelcomeScreen';
             isTransitioning = true;
             
             // Show the success modal
-            const successModal = document.getElementById('success-modal');
-            if (successModal) {
-              successModal.classList.remove('hidden');
-            }
+            showAnswerFeedback(true, 0);
 
             // Wait 1.5 seconds, then proceed to the next word
             setTimeout(() => {
-              if (successModal) {
-                successModal.classList.add('hidden');
-              }
+              if (answerFeedbackEl) answerFeedbackEl.classList.add('hidden');
               
               // Move to next question
               currentQuestionIndex++;

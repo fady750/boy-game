@@ -64,10 +64,11 @@
   <!-- Win Overlay Removed (now handled by React component EndGameFlow) -->
 
 
-  <!-- Success Modal -->
-  <div id="success-modal" class="hidden">
-    <div class="success-content">
-      <span class="success-check">✔</span> أحسنت!
+  <!-- Answer feedback, styled to match the other games -->
+  <div id="answer-feedback" class="answer-feedback hidden" role="status" aria-live="polite">
+    <div class="answer-feedback-card">
+      <svg class="answer-feedback__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+      <span class="answer-feedback__text"></span>
     </div>
   </div>
 
