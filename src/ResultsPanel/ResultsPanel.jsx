@@ -35,8 +35,9 @@ const ResultsPanel = ({
   };
 
   // Displays good.png when score >= 50%, or Arabic red text when score < 50%
-  const isSuccess =
-    totalScore > 0 ? correctAnswers / totalScore >= 0.5 : correctAnswers >= wrongAnswers;
+  const totalAnswers = correctAnswers + wrongAnswers;
+  const isSuccess = totalAnswers > 0 && correctAnswers / totalAnswers >= 0.5;
+  const correctPercent = totalAnswers ? Math.round((correctAnswers / totalAnswers) * 100) : 0;
 
   return (
     <div className="results-overlay">
@@ -54,6 +55,10 @@ const ResultsPanel = ({
             ) : (
               <div className="results-panel__fail-title">حاول مرة أخرى!</div>
             )}
+            <div className="results-grade" aria-label={`الدرجة ${correctPercent} من 100`}>
+              <span>الدَّرَجَة</span>
+              <strong>{correctPercent}/100</strong>
+            </div>
 
             {/* Zone 2: 3 Stat Cards (LTR) */}
             <div className="results-stats">
