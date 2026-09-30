@@ -213,3 +213,22 @@
     max-height: 60vh;
   }
 }
+
+@media (max-width: 950px) {
+  .welcome-footer-buttons {
+    width: 100%;
+    flex-wrap: nowrap;
+    gap: clamp(8px, 3vw, 18px);
+    padding-inline: 8px;
+  }
+  .welcome-footer-exit-btn,
+  .welcome-start-btn-new {
+    width: clamp(112px, 38vw, 190px);
+    min-width: 0;
+    height: auto;
+    aspect-ratio: 565 / 231;
+    flex: 0 1 190px;
+  }
+  .welcome-footer-exit-btn img { width: 100%; height: 100%; object-fit: contain; }
+  .welcome-start-btn-new { padding-bottom: 0; }
+}
