@@ -1,5 +1,6 @@
 import React from 'react';
 import './ResultsPanel.css';
+import { handleExitSite } from '../utils/navigation';
 
 import banalImg from './assets/banal.png';
 import goodImg from './assets/good.png';
@@ -22,7 +23,7 @@ const ResultsPanel = ({
     if (onBack) {
       onBack();
     } else {
-      window.history.back();
+      handleExitSite();
     }
   };
 
@@ -41,7 +42,7 @@ const ResultsPanel = ({
 
   return (
     <div className="results-overlay">
-      <section className="results-screen" aria-label="نتائج اللعبة">
+      <section className="results-screen" aria-label="نتائج اللعبة" dir="rtl">
         {/* Sci-Fi Frame Container */}
         <div
           className="results-panel"

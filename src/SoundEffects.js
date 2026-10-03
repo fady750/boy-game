@@ -1,3 +1,8 @@
+import lazzerSoundUrl from './assets/lazzer.mp3';
+
+const lazzerAudio = new Audio(lazzerSoundUrl);
+lazzerAudio.volume = 0.5; // Optional: Adjust volume if needed
+
 let audioCtx = null;
 
 function getAudioContext() {
@@ -12,22 +17,9 @@ function getAudioContext() {
 
 export function playShootSound() {
   try {
-    const ctx = getAudioContext();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'triangle'; // Retro, slightly soft but punchy tone
-    osc.frequency.setValueAtTime(880, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.12);
-
-    gain.gain.setValueAtTime(0.12, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.12);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc.start();
-    osc.stop(ctx.currentTime + 0.12);
+    const audioClone = lazzerAudio.cloneNode();
+    audioClone.volume = 0.3; // Make it a bit quieter so it isn't deafening on rapid fire
+    audioClone.play().catch(e => console.warn('Audio play failed:', e));
   } catch (e) {
     console.warn('Audio play failed:', e);
   }

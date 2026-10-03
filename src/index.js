@@ -19,6 +19,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import EndGameFlow from './EndGameFlow';
 import WelcomeScreen from './WelcomeScreen/WelcomeScreen';
+import { handleExitSite } from './utils/navigation';
 
 // Asynchronous IIFE
 (async () => {
@@ -105,12 +106,40 @@ import WelcomeScreen from './WelcomeScreen/WelcomeScreen';
 
   let gameStartedViaWelcome = false;
 
+  const enterGameFullscreen = () => {
+    const isMobileOrTablet = window.matchMedia('(max-width: 1024px), (pointer: coarse)').matches;
+    if (!isMobileOrTablet) return;
+
+    const fullscreenRoot = document.documentElement;
+    if (document.fullscreenElement) return;
+
+    const requestFullscreen = fullscreenRoot.requestFullscreen
+      || fullscreenRoot.webkitRequestFullscreen
+      || fullscreenRoot.mozRequestFullScreen
+      || fullscreenRoot.msRequestFullscreen;
+
+    if (!requestFullscreen) return;
+
+    try {
+      const fullscreenRequest = requestFullscreen.call(fullscreenRoot, { navigationUI: 'hide' });
+      fullscreenRequest?.catch?.(() => {});
+    } catch {
+      try {
+        const fullscreenRequest = requestFullscreen.call(fullscreenRoot);
+        fullscreenRequest?.catch?.(() => {});
+      } catch {
+        // Fullscreen is optional; continue starting the game if the browser declines it.
+      }
+    }
+  };
+
   const renderWelcome = (isLoading, count = 0) => {
     welcomeRoot.render(
       React.createElement(WelcomeScreen, {
         questionsCount: count,
         isLoading: isLoading,
         onStart: () => {
+          enterGameFullscreen();
           welcomeRoot.unmount();
           reactWelcomeRootEl.remove();
           gameStartedViaWelcome = true;
@@ -337,11 +366,15 @@ import WelcomeScreen from './WelcomeScreen/WelcomeScreen';
     const mediaImage = document.getElementById('question-media-image');
     const mediaAudio = document.getElementById('question-media-audio');
     if (mediaPanel && mediaText && mediaImage && mediaAudio) {
-      mediaText.textContent = wordObj.questionText || '';
+      const questionText = typeof wordObj.questionText === 'string'
+        ? wordObj.questionText.trim()
+        : '';
+      const visibleQuestionText = questionText === '.' ? '' : questionText;
+      mediaText.textContent = visibleQuestionText;
       mediaImage.src = wordObj.imageUrl || '';
       mediaImage.classList.toggle('hidden', !wordObj.imageUrl);
       mediaAudio.classList.toggle('hidden', !wordObj.audioUrl);
-      mediaPanel.classList.toggle('hidden', !wordObj.questionText && !wordObj.imageUrl && !wordObj.audioUrl);
+      mediaPanel.classList.toggle('hidden', !visibleQuestionText && !wordObj.imageUrl && !wordObj.audioUrl);
       mediaAudio.onclick = () => { if (wordObj.audioUrl) new Audio(wordObj.audioUrl).play().catch(() => {}); };
       mediaImage.onclick = () => {
         if (!wordObj.imageUrl) return;
@@ -362,7 +395,7 @@ import WelcomeScreen from './WelcomeScreen/WelcomeScreen';
         const slot = document.createElement('div');
         slot.className = 'letter-slot';
         slot.id = `slot-${i}`;
-        slot.textContent = targetLetters[i];
+        slot.textContent = '';
         slotsContainer.appendChild(slot);
       }
     }
@@ -386,13 +419,15 @@ import WelcomeScreen from './WelcomeScreen/WelcomeScreen';
     // Update question counter and progress bar
     const questionCounterEl = document.getElementById('question-counter');
     const progressFillEl = document.getElementById('header-progress-fill');
+    const totalQuestions = wordsList?.length || 0;
+    const currentQuestion = totalQuestions
+      ? Math.min(currentQuestionIndex + 1, totalQuestions)
+      : 0;
     if (questionCounterEl && wordsList) {
-      const current = Math.min(currentQuestionIndex + 1, wordsList.length);
-      questionCounterEl.textContent = `${current}/${wordsList.length}`;
+      questionCounterEl.textContent = `${currentQuestion}/${totalQuestions}`;
     }
     if (progressFillEl && wordsList) {
-      const current = Math.min(currentQuestionIndex, wordsList.length);
-      const percentage = wordsList.length > 0 ? (current / wordsList.length) * 100 : 0;
+      const percentage = totalQuestions > 0 ? (currentQuestion / totalQuestions) * 100 : 0;
       progressFillEl.style.width = `${percentage}%`;
     }
 
@@ -402,8 +437,10 @@ import WelcomeScreen from './WelcomeScreen/WelcomeScreen';
       if (slot) {
         if (collectedLetters[i]) {
           slot.classList.add('collected');
+          slot.textContent = targetLetters[i];
         } else {
           slot.classList.remove('collected');
+          slot.textContent = '';
         }
       }
     }
@@ -842,7 +879,7 @@ import WelcomeScreen from './WelcomeScreen/WelcomeScreen';
                     wrongAnswers: totalMistakes,
                     coins: earnedCoins,
                     onRetry: () => window.location.reload(),
-                    onBack: () => window.history.back()
+                    onBack: handleExitSite
                   })
                 );
               };
