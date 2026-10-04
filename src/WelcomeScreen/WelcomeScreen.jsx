@@ -6,7 +6,7 @@ import questionNumberImg from '../assets/QuestionNumber.png';
 import descriptionImg from '../assets/description.png';
 import startButtonImg from '../assets/start_transparent.png';
 import daddcoinImg from '../assets/daddcoin.webp';
-import exitButtonImg from '../assets/exit_transparent.png';
+import exitButtonImg from '../assets/Exit1.png';
 
 export default function WelcomeScreen({ questionsCount = 0, isLoading = false, onStart }) {
   const daddPoints = questionsCount;

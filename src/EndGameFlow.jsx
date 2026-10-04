@@ -41,6 +41,7 @@ export default function EndGameFlow({
           correctAnswers={correctAnswers}
           wrongAnswers={wrongAnswers}
           coins={coins}
+          totalQuestions={totalScore}
           onRetry={onRetry}
           onBack={onBack}
         />

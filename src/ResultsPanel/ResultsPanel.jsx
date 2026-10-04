@@ -1,112 +1,92 @@
-import React from 'react';
+import { useState } from 'react';
 import './ResultsPanel.css';
-import { handleExitSite } from '../utils/navigation';
+// Exported from Figma: the WHOLE panel (frame, grade pill + its "الدرجة" label,
+// the three cards, check / coins / X icons, the "فلوس" label) with the dynamic
+// text layers hidden: the title and the four values.
+import panelArt from '../assets/results-panel-empty.png';
+import celebrationTitle from './assets/good.png';
+import exitButtonImage from '../assets/Exit1.png';
+import retryButtonImage from '../assets/start_transparent.png';
 
-import banalImg from './assets/banal.png';
-import goodImg from './assets/good.png';
-import moneyImg from './assets/money.png';
-import rightImg from './assets/right.png';
-import wrongImg from './assets/wrong.png';
-import exitImg from './assets/exit.png';
-import retryImg from './assets/retry.png';
+const numberValue = (value) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.max(0, Math.round(parsed)) : 0;
+};
 
-const ResultsPanel = ({
-  score = 0,
-  totalScore = 0,
-  correctAnswers = 0,
-  wrongAnswers = 0,
-  coins = 0,
+/**
+ * Results panel = one baked image + live text on top.
+ * Every overlay is positioned as a % of the image box, so it stays glued to
+ * the artwork at any screen size.
+ *
+ * Optional `debugOverlay`: pass the full Figma export (with numbers) to see it
+ * at 50% opacity over the live render while you calibrate positions.
+ */
+export default function ResultsPanel({
+  totalScore = 100,
+  correctAnswers,
+  wrongAnswers,
+  coins,
+  totalQuestions,
   onRetry,
   onBack,
-}) => {
-  const handleBack = () => {
-    if (onBack) {
-      onBack();
-    } else {
-      handleExitSite();
-    }
-  };
+  debugOverlay,
+}) {
+  const correct = numberValue(correctAnswers);
+  const wrong = numberValue(wrongAnswers);
+  const earnedCoins = numberValue(coins);
+  const questionCount = numberValue(totalQuestions) || correct + wrong;
+  const correctPercent = questionCount ? Math.round((correct / questionCount) * 100) : 0;
+  const isSuccess = questionCount > 0 && correctPercent >= 50;
 
-  const handleRetry = () => {
-    if (onRetry) {
-      onRetry();
-    } else {
-      window.location.reload();
-    }
-  };
-
-  // Displays good.png when score >= 50%, or Arabic red text when score < 50%
-  const totalAnswers = correctAnswers + wrongAnswers;
-  const isSuccess = totalAnswers > 0 && correctAnswers / totalAnswers >= 0.5;
-  const correctPercent = totalAnswers ? Math.round((correctAnswers / totalAnswers) * 100) : 0;
+  // The layout is sized from the exported image's real width / height.
+  const [ratio, setRatio] = useState(null);
 
   return (
     <div className="results-overlay">
-      <section className="results-screen" aria-label="نتائج اللعبة" dir="rtl">
-        {/* Sci-Fi Frame Container */}
-        <div
-          className="results-panel"
-          style={{ '--results-panel-image': `url(${banalImg})` }}
-        >
-          <img className="results-panel__frame" src={banalImg} alt="" aria-hidden="true" />
-          <div className="results-panel__content">
-            {/* Zone 1: Success Image OR Red Fail Text */}
-            {isSuccess ? (
-              <img className="results-panel__title" src={goodImg} alt="أحسنت" />
-            ) : (
-              <div className="results-panel__fail-title">حاول مرة أخرى!</div>
-            )}
-            <div className="results-grade" aria-label={`الدرجة ${correctPercent} من 100`}>
-              <span>الدَّرَجَة</span>
-              <strong>{correctPercent}/100</strong>
-            </div>
+      <section
+        className="results-screen"
+        aria-label="نتائج اللعبة"
+        dir="rtl"
+        style={ratio ? { '--rp-ratio': ratio } : undefined}
+      >
+        <div className="results-panel">
+          <img
+            className="results-panel__art"
+            src={panelArt}
+            alt=""
+            onLoad={(e) => {
+              const { naturalWidth, naturalHeight } = e.currentTarget;
+              if (naturalWidth && naturalHeight) setRatio(naturalWidth / naturalHeight);
+            }}
+          />
 
-            {/* Zone 2: 3 Stat Cards (LTR) */}
-            <div className="results-stats">
-              {/* 1. Correct Answers */}
-              <div className="results-stat-card results-stat-card--correct">
-                <img src={rightImg} alt="إجابات صحيحة" />
-                <strong>{correctAnswers}</strong>
-              </div>
+          {isSuccess ? (
+            <img className="results-title" src={celebrationTitle} alt="أحسنت" />
+          ) : (
+            <div className="results-title results-title--fail">حاول مرة أخرى!</div>
+          )}
 
-              {/* 2. Earned Coins */}
-              <div className="results-stat-card results-stat-card--coins">
-                <img src={moneyImg} alt="عملات مكتسبة" />
-                <strong>+{coins}</strong>
-                <span>فِلُوس</span>
-              </div>
+          {/* Visual numbers are hidden from screen readers; one summary replaces them. */}
+          <strong className="results-num results-num--grade" aria-hidden="true">{correctPercent}/100</strong>
+          <strong className="results-num results-num--correct" aria-hidden="true">{correct}</strong>
+          <strong className="results-num results-num--coins" aria-hidden="true">+{earnedCoins}</strong>
+          <strong className="results-num results-num--wrong" aria-hidden="true">{wrong}</strong>
+          <p className="results-sr">
+            {`الدرجة ${correctPercent} من 100. إجابات صحيحة ${correct}. إجابات خاطئة ${wrong}. فلوس مكتسبة ${earnedCoins}.`}
+          </p>
 
-              {/* 3. Wrong Answers */}
-              <div className="results-stat-card results-stat-card--wrong">
-                <img src={wrongImg} alt="إجابات خاطئة" />
-                <strong>{wrongAnswers}</strong>
-              </div>
-            </div>
-          </div>
+          {debugOverlay && <img className="results-debug" src={debugOverlay} alt="" aria-hidden="true" />}
         </div>
 
-        {/* Zone 3: Bottom Action Buttons (RTL: Exit Right, Retry Left) */}
         <div className="results-actions">
-          <button
-            type="button"
-            className="results-action results-action--back"
-            aria-label="خروج"
-            onClick={handleBack}
-          >
-            <img src={exitImg} className="results-action__bg" alt="خروج" />
+          <button className="results-action results-action--back" type="button" onClick={onBack}>
+            <img className="results-action__bg" src={exitButtonImage} alt="خروج" />
           </button>
-          <button
-            type="button"
-            className="results-action results-action--retry"
-            aria-label="إعادة المحاولة"
-            onClick={handleRetry}
-          >
-            <img src={retryImg} className="results-action__bg" alt="إعادة المحاولة" />
+          <button className="results-action results-action--retry" type="button" onClick={onRetry}>
+            <img className="results-action__bg" src={retryButtonImage} alt="إعادة المحاولة" />
           </button>
         </div>
       </section>
     </div>
   );
-};
-
-export default ResultsPanel;
+}

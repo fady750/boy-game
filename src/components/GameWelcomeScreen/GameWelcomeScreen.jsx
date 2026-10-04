@@ -20,13 +20,7 @@ export default function GameWelcomeScreen({
 }) {
   const startDisabled = isLoading || !isReady;
 
-  const handleArtLoad = (event) => {
-    const image = event.currentTarget;
-    const stage = image.closest('.gws-stage');
-    if (stage && image.naturalWidth && image.naturalHeight) {
-      stage.style.setProperty('--gws-art-ratio', String(image.naturalWidth / image.naturalHeight));
-    }
-  };
+
 
   return (
     <div
@@ -55,7 +49,6 @@ export default function GameWelcomeScreen({
               className="gws-description-art"
               src={descriptionImage}
               alt="شرح طريقة اللعب"
-              onLoad={handleArtLoad}
             />
           </div>
 
